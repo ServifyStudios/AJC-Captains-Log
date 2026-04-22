@@ -9,10 +9,9 @@
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
-  .page { display: none; }
-  .page.active { display: block; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+  .page { display: none !important; }
+  .tab-content { display: none !important; }
+  .tab-content.active { display: block !important; }
   .editable-input { border: 1px solid transparent; border-radius: 6px; padding: 4px 8px; background: transparent; width: 100%; font-size: 13px; }
   .editable-input:focus { border-color: #bea566; background: white; outline: none; }
   .editable-input.own-row { background: #faf5e8; border-color: #e8ddc4; }
@@ -136,7 +135,7 @@
 <body>
 
 <!-- ==================== LOGIN ==================== -->
-<div id="page-login" class="page active min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(135deg,#010c17 0%,#020e1d 60%,#0b1e35 100%)">
+<div id="page-login" class="page min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(135deg,#010c17 0%,#020e1d 60%,#0b1e35 100%)">
   <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
     <div class="text-center mb-8">
       <div class="flex justify-center mb-4">
@@ -165,7 +164,7 @@
         <a class="text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition" onclick="showPage('page-forgot')">Forgot your password?</a>
       </div>
     </div>
-    <div class="mt-6 text-center text-sm text-gray-500">New here? <a class="brand-text cursor-pointer hover:underline font-medium" onclick="showPage('page-register')">Register with your invite link</a></div>
+    <div class="mt-6 text-center text-sm text-gray-500">New here? Please request a sign up link from us.</div>
   </div>
 </div>
 
@@ -1205,8 +1204,9 @@ function doLogout() { currentUser = null; currentGroupFilter = null; showPage('p
 
 // ===== NAV =====
 function showPage(id) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  const el = document.getElementById(id);
+  el.style.display = id === 'page-app' ? 'block' : 'flex';
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
@@ -2052,6 +2052,7 @@ document.addEventListener('click', (e) => {
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', ()=>{
   loadData();
+  showPage('page-login');
   populateCoachSelects();
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
