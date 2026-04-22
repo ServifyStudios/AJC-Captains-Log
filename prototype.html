@@ -117,6 +117,20 @@
     .rankings-grid { grid-template-columns: repeat(2,1fr) !important; }
     .cohort-stats-grid { grid-template-columns: repeat(2,1fr) !important; }
   }
+
+  /* ===== BOTTOM NAV ===== */
+  #bottom-nav { display: none; }
+  .bn-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px 6px; gap: 2px; flex: 1; color: #637480; transition: color .15s; border: none; background: none; cursor: pointer; min-width: 0; }
+  .bn-btn.bn-active { color: #bea566; }
+  .bn-btn span { font-size: 10px; font-weight: 600; white-space: nowrap; }
+  @media (max-width: 640px) {
+    .nav-btn { display: none !important; }
+    #bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: #020e1d; border-top: 1px solid rgba(255,255,255,.1); padding-bottom: env(safe-area-inset-bottom, 0px); }
+    #page-app { padding-bottom: 0; }
+    #tab-captains-log, #tab-dashboard, #tab-daily-log, #tab-profile, #tab-admin { padding-bottom: 80px !important; }
+    /* Nav — keep logo + signout, hide tab buttons already done */
+    nav .ml-auto { gap: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -152,16 +166,6 @@
       </div>
     </div>
     <div class="mt-6 text-center text-sm text-gray-500">New here? <a class="brand-text cursor-pointer hover:underline font-medium" onclick="showPage('page-register')">Register with your invite link</a></div>
-    <div class="mt-4 pt-4 border-t border-gray-100 text-center">
-      <span class="text-xs text-gray-400">Jump in as: </span>
-      <span class="text-xs brand-text cursor-pointer font-medium" onclick="fillLogin('james@example.com')">James</span>
-      <span class="text-xs text-gray-300 mx-1">·</span>
-      <span class="text-xs brand-text cursor-pointer font-medium" onclick="fillLogin('priya@example.com')">Priya</span>
-      <span class="text-xs text-gray-300 mx-1">·</span>
-      <span class="text-xs brand-text cursor-pointer font-medium" onclick="fillLogin('sarah@example.com')">Sarah</span>
-      <span class="text-xs text-gray-300 mx-1">·</span>
-      <span class="text-xs brand-text cursor-pointer font-medium" onclick="fillLogin('admin@ajc.com')">Admin</span>
-    </div>
   </div>
 </div>
 
@@ -377,11 +381,6 @@
       <label class="text-sm font-medium text-gray-600">Viewing:</label>
       <select id="coach-select" onchange="selectPersonFromDropdown(this.value)" class="coach-select border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white min-w-64 cursor-pointer shadow-sm" style="transition:border-color .15s" onfocus="this.style.borderColor='#bea566'" onblur="this.style.borderColor='#e5e7eb'">
         <option value="">🏠 Whole Cohort</option>
-        <option value="2">James Osei</option>
-        <option value="5">Lara Nguyen</option>
-        <option value="3">Priya Patel</option>
-        <option value="1">Sarah Mitchell</option>
-        <option value="4">Tom Clarke</option>
       </select>
       <button id="learn-more-btn" onclick="openProfileModal()" class="hidden items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl transition" style="background:#faf5e8;color:#7a6636;border:1px solid #e8ddc4">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Learn more about <span id="learn-more-name"></span>
@@ -397,20 +396,20 @@
 
       <!-- Cohort summary stats (7 cards — Coaches Above ICF removed) -->
       <div class="cohort-stats-grid grid gap-3 mb-5" style="grid-template-columns:repeat(4,1fr)">
-        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Conversations</div><div id="coh-conv" class="text-2xl font-bold text-gray-800">1,217</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
-        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Proposals</div><div id="coh-prop" class="text-2xl font-bold text-gray-800">£285k</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
-        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Sales</div><div id="coh-sales" class="text-2xl font-bold text-gray-800">£213k</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
-        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Income</div><div id="coh-income" class="text-2xl font-bold text-gray-800">£181k</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
-        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Referrals</div><div id="coh-ref" class="text-2xl font-bold text-gray-800">164</div><div class="text-xs text-gray-400 mt-1">across all coaches</div></div>
-        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Renewals</div><div id="coh-ren" class="text-2xl font-bold text-gray-800">61</div><div class="text-xs text-gray-400 mt-1">across all coaches</div></div>
+        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Conversations</div><div id="coh-conv" class="text-2xl font-bold text-gray-800">—</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
+        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Proposals</div><div id="coh-prop" class="text-2xl font-bold text-gray-800">—</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
+        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Sales</div><div id="coh-sales" class="text-2xl font-bold text-gray-800">—</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
+        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Income</div><div id="coh-income" class="text-2xl font-bold text-gray-800">—</div><div class="text-xs text-green-500 mt-1">school year so far</div></div>
+        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Referrals</div><div id="coh-ref" class="text-2xl font-bold text-gray-800">—</div><div class="text-xs text-gray-400 mt-1">across all coaches</div></div>
+        <div class="metric-card"><div class="text-xs text-gray-400 mb-1">Total Renewals</div><div id="coh-ren" class="text-2xl font-bold text-gray-800">—</div><div class="text-xs text-gray-400 mt-1">across all coaches</div></div>
         <div class="metric-card col-span-2">
           <div class="flex items-center gap-1 text-xs text-gray-400 mb-1">
             Avg Projected Annual Income / Coach
             <button class="info-btn" onclick="showIcfInfo(event)">i</button>
           </div>
           <div class="flex items-end gap-3">
-            <div id="coh-avg-income" class="text-2xl font-bold text-gray-800">£72,400</div>
-            <div class="text-sm font-semibold text-green-600 mb-0.5">74% above ICF avg ↑</div>
+            <div id="coh-avg-income" class="text-2xl font-bold text-gray-800">—</div>
+            <div id="coh-icf-pct" class="text-sm font-semibold text-green-600 mb-0.5"></div>
           </div>
           <div class="text-xs text-gray-400 mt-1">ICF global average is £41,713/yr</div>
         </div>
@@ -464,14 +463,14 @@
         <div class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#020e1d" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> Cohort Sales Growth — Pre-School vs School Year</div>
         <div class="flex gap-4 items-center">
           <div class="flex-shrink-0 rounded-2xl flex flex-col items-center justify-center text-center px-5 py-5" style="background:#020e1d;min-width:110px">
-            <div class="text-4xl font-black" style="color:#bea566;line-height:1">+42%</div>
+            <div id="cohort-growth-pct" class="text-4xl font-black" style="color:#bea566;line-height:1">—</div>
             <div class="text-xs mt-1.5 font-semibold" style="color:#92a6b3">Sales Growth</div>
           </div>
           <div class="flex-1" style="position:relative;height:160px">
             <canvas id="chart-cohort-sales"></canvas>
           </div>
         </div>
-        <div class="text-center text-sm font-semibold text-green-600 mt-3">🎉 Cohort sales grew +42% from pre-school to the school year — incredible!</div>
+        <div id="cohort-growth-msg" class="text-center text-sm font-semibold text-gray-400 mt-3"></div>
       </div>
 
     </div>
@@ -567,7 +566,7 @@
               Number of conversations with prospect clients
               <button class="info-btn" onclick="showDailyInfo(event,'conv')">i</button>
             </label>
-            <input type="number" min="0" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+            <input id="daily-conv" type="number" min="0" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -576,7 +575,7 @@
             </label>
             <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden">
               <span class="px-3 py-2 bg-gray-50 text-gray-500 text-sm font-medium border-r border-gray-100">£</span>
-              <input type="text" placeholder="0.00" oninput="validateCurrency(this)" class="flex-1 px-3 py-2 text-sm focus:outline-none">
+              <input id="daily-proposals" type="text" placeholder="0.00" oninput="validateCurrency(this)" class="flex-1 px-3 py-2 text-sm focus:outline-none">
             </div>
           </div>
           <div>
@@ -586,7 +585,7 @@
             </label>
             <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden">
               <span class="px-3 py-2 bg-gray-50 text-gray-500 text-sm font-medium border-r border-gray-100">£</span>
-              <input type="text" placeholder="0.00" oninput="validateCurrency(this)" class="flex-1 px-3 py-2 text-sm focus:outline-none">
+              <input id="daily-sales" type="text" placeholder="0.00" oninput="validateCurrency(this)" class="flex-1 px-3 py-2 text-sm focus:outline-none">
             </div>
           </div>
           <div>
@@ -596,7 +595,7 @@
             </label>
             <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden">
               <span class="px-3 py-2 bg-gray-50 text-gray-500 text-sm font-medium border-r border-gray-100">£</span>
-              <input type="text" placeholder="0.00" oninput="validateCurrency(this)" class="flex-1 px-3 py-2 text-sm focus:outline-none">
+              <input id="daily-income" type="text" placeholder="0.00" oninput="validateCurrency(this)" class="flex-1 px-3 py-2 text-sm focus:outline-none">
             </div>
           </div>
           <div>
@@ -604,14 +603,14 @@
               Number of Referrals
               <button class="info-btn" onclick="showDailyInfo(event,'ref')">i</button>
             </label>
-            <input type="number" min="0" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+            <input id="daily-ref" type="number" min="0" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Number of Renewals
               <button class="info-btn" onclick="showDailyInfo(event,'ren')">i</button>
             </label>
-            <input type="number" min="0" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
+            <input id="daily-ren" type="number" min="0" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
           </div>
         </div>
         <button onclick="saveDailyLog()" class="mt-5 brand-btn px-5 py-2.5 rounded-xl text-sm font-medium transition">Save Entry</button>
@@ -621,12 +620,7 @@
         <div class="text-sm font-semibold text-gray-700 mb-3">Your Recent Entries</div>
         <table>
           <thead><tr><th>Date</th><th>Conv.</th><th>Proposals</th><th>Income</th><th>Ref.</th><th>Ren.</th></tr></thead>
-          <tbody>
-            <tr><td class="text-gray-500">Jan 20</td><td>4</td><td>£8,500</td><td>£2,000</td><td>1</td><td>0</td></tr>
-            <tr><td class="text-gray-500">Jan 17</td><td>6</td><td>£12,000</td><td>£3,500</td><td>0</td><td>1</td></tr>
-            <tr><td class="text-gray-500">Jan 14</td><td>5</td><td>£15,702</td><td>£5,126</td><td>2</td><td>0</td></tr>
-            <tr><td class="text-gray-500">Jan 10</td><td>8</td><td>£22,000</td><td>£8,000</td><td>1</td><td>1</td></tr>
-          </tbody>
+          <tbody id="daily-log-recent-body"></tbody>
         </table>
       </div>
     </div>
@@ -780,24 +774,14 @@
             <label class="block text-xs text-gray-500 mb-1">Mentor (will also be a group member)</label>
             <select id="admin-mentor-select" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white">
               <option value="">— Select a mentor —</option>
-              <option value="2">James Osei</option>
-              <option value="5">Lara Nguyen</option>
-              <option value="3">Priya Patel</option>
-              <option value="1">Sarah Mitchell</option>
-              <option value="4">Tom Clarke</option>
             </select>
           </div>
           <div class="mb-4">
             <label class="block text-xs text-gray-500 mb-2">Group Members <span class="text-gray-400">(tick everyone in this group)</span></label>
             <div id="admin-members-list" class="grid grid-cols-2 gap-2">
-              <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer hover:border-gray-300 text-sm"><input type="checkbox" value="2" class="member-checkbox rounded accent-[#020e1d]"> James Osei</label>
-              <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer hover:border-gray-300 text-sm"><input type="checkbox" value="5" class="member-checkbox rounded accent-[#020e1d]"> Lara Nguyen</label>
-              <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer hover:border-gray-300 text-sm"><input type="checkbox" value="3" class="member-checkbox rounded accent-[#020e1d]"> Priya Patel</label>
-              <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer hover:border-gray-300 text-sm"><input type="checkbox" value="1" class="member-checkbox rounded accent-[#020e1d]"> Sarah Mitchell</label>
-              <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer hover:border-gray-300 text-sm"><input type="checkbox" value="4" class="member-checkbox rounded accent-[#020e1d]"> Tom Clarke</label>
             </div>
           </div>
-          <button onclick="createMentoringGroup()" class="brand-btn px-4 py-2 rounded-xl text-sm font-medium transition">Create Group</button>
+          <button id="create-group-btn" onclick="createMentoringGroup()" class="brand-btn px-4 py-2 rounded-xl text-sm font-medium transition">Create Group</button>
         </div>
 
         <!-- Existing groups -->
@@ -808,6 +792,29 @@
     </div>
   </div>
 
+  <!-- MOBILE BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="bn-btn" id="bn-captains-log" onclick="switchTab('captains-log')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Log</span>
+    </button>
+    <button class="bn-btn" id="bn-dashboard" onclick="switchTab('dashboard')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="bn-btn" id="bn-daily-log" onclick="switchTab('daily-log')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Daily</span>
+    </button>
+    <button class="bn-btn" id="bn-profile" onclick="switchTab('profile')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profile</span>
+    </button>
+    <button class="bn-btn" id="bn-admin" onclick="switchTab('admin')" style="display:none">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Admin</span>
+    </button>
+  </nav>
 </div><!-- end page-app -->
 <div id="toast"></div>
 
@@ -938,82 +945,18 @@ const COLUMN_INFO = {
   },
 };
 
-// ===== MOCK DATA =====
+// ===== USERS (real cohort) =====
 const MOCK_USERS = [
-  { id:1, email:'sarah@example.com',  name:'Sarah Mitchell', isAdmin:false },
-  { id:2, email:'james@example.com',  name:'James Osei',     isAdmin:false },
-  { id:3, email:'priya@example.com',  name:'Priya Patel',    isAdmin:false },
-  { id:4, email:'tom@example.com',    name:'Tom Clarke',     isAdmin:false },
-  { id:5, email:'lara@example.com',   name:'Lara Nguyen',    isAdmin:false },
-  { id:6, email:'admin@ajc.com',      name:'Ankush',         isAdmin:true  },
+  { id:1, email:'sarah@ajc.com',  name:'Sarah Mitchell', isAdmin:false },
+  { id:2, email:'james@ajc.com',  name:'James Osei',     isAdmin:false },
+  { id:3, email:'priya@ajc.com',  name:'Priya Patel',    isAdmin:false },
+  { id:4, email:'tom@ajc.com',    name:'Tom Clarke',     isAdmin:false },
+  { id:5, email:'lara@ajc.com',   name:'Lara Nguyen',    isAdmin:false },
+  { id:6, email:'admin@ajc.com',  name:'Ankush',         isAdmin:true  },
 ];
 
-// Pre-school monthly data (6 months Mar–Aug, pence)
-const LOG_DATA = {
-  'preschool-Mar': [
-    { userId:2, name:'James Osei',     conv:20, proposals:4500000, sales:2800000, income:2400000, ref:4, ren:1 },
-    { userId:5, name:'Lara Nguyen',    conv:5,  proposals:500000,  sales:310000,  income:250000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:42, proposals:6800000, sales:5100000, income:4300000, ref:6, ren:2 },
-    { userId:1, name:'Sarah Mitchell', conv:17, proposals:3900000, sales:2500000, income:2100000, ref:3, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:8,  proposals:1000000, sales:620000,  income:430000,  ref:2, ren:0 },
-  ],
-  'preschool-Apr': [
-    { userId:2, name:'James Osei',     conv:22, proposals:5000000, sales:3100000, income:2700000, ref:5, ren:1 },
-    { userId:5, name:'Lara Nguyen',    conv:6,  proposals:550000,  sales:350000,  income:280000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:45, proposals:7200000, sales:5500000, income:4800000, ref:7, ren:2 },
-    { userId:1, name:'Sarah Mitchell', conv:18, proposals:4200000, sales:2700000, income:2300000, ref:3, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:9,  proposals:1100000, sales:680000,  income:490000,  ref:2, ren:0 },
-  ],
-  'preschool-May': [
-    { userId:2, name:'James Osei',     conv:25, proposals:5500000, sales:3400000, income:3000000, ref:5, ren:1 },
-    { userId:5, name:'Lara Nguyen',    conv:7,  proposals:620000,  sales:400000,  income:330000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:48, proposals:8000000, sales:6100000, income:5400000, ref:8, ren:2 },
-    { userId:1, name:'Sarah Mitchell', conv:19, proposals:4500000, sales:2900000, income:2500000, ref:4, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:10, proposals:1200000, sales:740000,  income:540000,  ref:2, ren:1 },
-  ],
-  'preschool-Jun': [
-    { userId:2, name:'James Osei',     conv:26, proposals:5700000, sales:3500000, income:3200000, ref:6, ren:1 },
-    { userId:5, name:'Lara Nguyen',    conv:7,  proposals:640000,  sales:410000,  income:350000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:50, proposals:9000000, sales:7000000, income:6200000, ref:8, ren:3 },
-    { userId:1, name:'Sarah Mitchell', conv:20, proposals:5000000, sales:3200000, income:2800000, ref:4, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:11, proposals:1350000, sales:820000,  income:600000,  ref:2, ren:1 },
-  ],
-  'preschool-Jul': [
-    { userId:2, name:'James Osei',     conv:24, proposals:5400000, sales:3300000, income:2900000, ref:5, ren:1 },
-    { userId:5, name:'Lara Nguyen',    conv:6,  proposals:580000,  sales:370000,  income:310000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:46, proposals:8500000, sales:6500000, income:5700000, ref:7, ren:2 },
-    { userId:1, name:'Sarah Mitchell', conv:18, proposals:4800000, sales:3000000, income:2600000, ref:3, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:10, proposals:1250000, sales:760000,  income:550000,  ref:2, ren:0 },
-  ],
-  'preschool-Aug': [
-    { userId:2, name:'James Osei',     conv:28, proposals:5800000, sales:3600000, income:3200000, ref:6, ren:2 },
-    { userId:5, name:'Lara Nguyen',    conv:8,  proposals:650000,  sales:420000,  income:350000,  ref:2, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:52, proposals:9500000, sales:7200000, income:6300000, ref:9, ren:3 },
-    { userId:1, name:'Sarah Mitchell', conv:21, proposals:5200000, sales:3200000, income:2800000, ref:4, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:12, proposals:1350000, sales:820000,  income:580000,  ref:2, ren:1 },
-  ],
-  'school-Sep': [
-    { userId:2, name:'James Osei',     conv:28, proposals:4800000, sales:2900000, income:2400000, ref:6, ren:1 },
-    { userId:5, name:'Lara Nguyen',    conv:6,  proposals:400000,  sales:310000,  income:260000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:50, proposals:9000000, sales:6800000, income:5800000, ref:7, ren:2 },
-    { userId:1, name:'Sarah Mitchell', conv:18, proposals:4200000, sales:2600000, income:2100000, ref:3, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:9,  proposals:1100000, sales:680000,  income:450000,  ref:2, ren:0 },
-  ],
-  'school-Jan': [
-    { userId:2, name:'James Osei',     conv:35, proposals:6526300, sales:3814000, income:3289000, ref:8,  ren:2 },
-    { userId:5, name:'Lara Nguyen',    conv:10, proposals:760000,  sales:625700,  income:535700,  ref:2,  ren:1 },
-    { userId:3, name:'Priya Patel',    conv:64, proposals:12370200,sales:9063700, income:8012600, ref:9,  ren:3 },
-    { userId:1, name:'Sarah Mitchell', conv:26, proposals:6120200, sales:3764000, income:2890000, ref:5,  ren:2 },
-    { userId:4, name:'Tom Clarke',     conv:15, proposals:1800000, sales:1100000, income:750000,  ref:4,  ren:1 },
-  ],
-  'school-Feb': [
-    { userId:2, name:'James Osei',     conv:32, proposals:5900000, sales:3400000, income:2900000, ref:7, ren:2 },
-    { userId:5, name:'Lara Nguyen',    conv:8,  proposals:600000,  sales:480000,  income:400000,  ref:1, ren:0 },
-    { userId:3, name:'Priya Patel',    conv:58, proposals:11200000,sales:8400000, income:7200000, ref:8, ren:3 },
-    { userId:1, name:'Sarah Mitchell', conv:22, proposals:5400000, sales:3200000, income:2600000, ref:4, ren:1 },
-    { userId:4, name:'Tom Clarke',     conv:12, proposals:1500000, sales:900000,  income:600000,  ref:3, ren:1 },
-  ],
-};
+// Monthly log data — loaded from localStorage, starts empty
+let LOG_DATA = {};
 
 const PRESCHOOL_MONTHS = ['Mar','Apr','May','Jun','Jul','Aug'];
 
@@ -1039,18 +982,29 @@ function preschoolTotalRows() {
   return Object.values(totals).sort((a,b)=>a.name.localeCompare(b.name));
 }
 
-// School-year totals per coach (dashboard) — values in pence
-// preSales = 6-month pre-school sales total (Mar–Aug)
-const SCHOOL_TOTALS = {
-  2: { name:'James Osei',     conv:285, proposals:6000000,  sales:4200000,  income:3600000,  ref:41, ren:16, preSales:3000000  },
-  5: { name:'Lara Nguyen',    conv:82,  proposals:1500000,  sales:900000,   income:700000,   ref:11, ren:5,  preSales:600000   },
-  3: { name:'Priya Patel',    conv:520, proposals:14000000, sales:11000000, income:9500000,  ref:72, ren:24, preSales:8000000  },
-  1: { name:'Sarah Mitchell', conv:210, proposals:5000000,  sales:3800000,  income:3200000,  ref:22, ren:9,  preSales:2500000  },
-  4: { name:'Tom Clarke',     conv:120, proposals:2000000,  sales:1400000,  income:1100000,  ref:18, ren:7,  preSales:900000   },
-};
+// ===== SCHOOL TOTALS — computed dynamically from LOG_DATA =====
+const SCHOOL_MONTHS = ['Sep','Oct','Nov','Dec','Jan','Feb'];
+const PRE_MONTHS = ['Mar','Apr','May','Jun','Jul','Aug'];
+
+function computeSchoolTotals() {
+  const result = {};
+  MOCK_USERS.filter(u=>!u.isAdmin).forEach(u=>{
+    result[u.id] = { name:u.name, conv:0, proposals:0, sales:0, income:0, ref:0, ren:0, preSales:0 };
+    SCHOOL_MONTHS.forEach(m=>{
+      const row = (LOG_DATA['school-'+m]||[]).find(r=>r.userId===u.id);
+      if(row){ result[u.id].conv+=row.conv; result[u.id].proposals+=row.proposals; result[u.id].sales+=row.sales; result[u.id].income+=row.income; result[u.id].ref+=row.ref; result[u.id].ren+=row.ren; }
+    });
+    PRE_MONTHS.forEach(m=>{
+      const row = (LOG_DATA['preschool-'+m]||[]).find(r=>r.userId===u.id);
+      if(row){ result[u.id].preSales+=row.sales; }
+    });
+  });
+  return result;
+}
 
 function computeRanks() {
-  const data = Object.entries(SCHOOL_TOTALS).map(([id,d])=>({id:parseInt(id),...d}));
+  const st = computeSchoolTotals();
+  const data = Object.entries(st).map(([id,d])=>({id:parseInt(id),...d}));
   const rank = (field) => {
     const sorted = [...data].sort((a,b)=>b[field]-a[field]);
     const r = {};
@@ -1059,16 +1013,8 @@ function computeRanks() {
   };
   return { income:rank('income'), conv:rank('conv'), proposals:rank('proposals'), sales:rank('sales'), ref:rank('ref'), ren:rank('ren') };
 }
-const RANKS = computeRanks();
 
-// ===== COACH PROFILES =====
-const COACH_PROFILES = {
-  1: { experience:'5+ years', idealClients:'Senior leaders in tech companies who want to scale their impact and lead more authentically.', challenge:'Getting consistent referrals and building a reliable pipeline without relying on LinkedIn alone.', clients:'8 clients — 6 paying, 2 pro-bono', fullPractice:'15 paying clients', workFormat:'1:1 online monthly retainers (4 sessions/month). Developing a group programme for Q2.', pricing:'£2,000/month retainer', sources:'1. Referrals from existing clients (50%)\n2. LinkedIn content (30%)\n3. Speaking events (20%)', goals:'Hit £10k/month consistent income, launch group programme, and land 2 more retainer clients.' },
-  2: { experience:'7+ years', idealClients:'Entrepreneurs scaling from 6 to 7 figures who need to build a leadership team around them.', challenge:'Pricing premium packages consistently and not discounting under pressure.', clients:'12 clients — all paying', fullPractice:'15 clients', workFormat:'1:1 VIP days and 6-month coaching intensives. Mix of in-person and online.', pricing:'£3,500/month or £8,000 VIP day', sources:'1. Speaking engagements (40%)\n2. Referrals (40%)\n3. LinkedIn (20%)', goals:'Launch a mastermind group, hit £20k/month, write a book on leadership transitions.' },
-  3: { experience:'10+ years', idealClients:'C-suite executives and founders navigating rapid growth or organisational change.', challenge:'Creating scalable offerings beyond 1:1 to grow revenue without trading more time.', clients:'18 clients — all paying', fullPractice:'20 clients', workFormat:'Executive coaching retainers, group leadership programmes, and board facilitation.', pricing:'£5,000–£8,000/month retainer', sources:'1. Referrals and word of mouth (60%)\n2. Corporate contracts (30%)\n3. Conference speaking (10%)', goals:'Launch an executive group programme, build a waiting list, and delegate intake calls.' },
-  4: { experience:'3 years', idealClients:'Mid-career professionals in financial services who feel stuck and want more purpose at work.', challenge:'Building confidence to charge premium rates and moving away from lower-paying clients.', clients:'5 clients — 4 paying, 1 pro-bono', fullPractice:'12 clients', workFormat:'1:1 online sessions, bi-weekly, 60 minutes. Starting to explore group formats.', pricing:'£750/month', sources:'1. LinkedIn (50%)\n2. Referrals (30%)\n3. Networking events (20%)', goals:'Get to 10 paying clients, raise rates to £1,200/month, launch a group programme.' },
-  5: { experience:'2 years', idealClients:'Women in tech and startup environments who want to step into leadership roles.', challenge:'Niching down — I work with lots of people but want to be known for something specific.', clients:'4 clients — 3 paying, 1 pro-bono', fullPractice:'10 clients', workFormat:'1:1 online coaching, monthly retainers, 2 sessions per month.', pricing:'£500/month', sources:'1. Social media (40%)\n2. Referrals (40%)\n3. Online communities (20%)', goals:'Define my niche clearly, get to 8 paying clients, raise rates to £800/month.' },
-};
+// Coach profiles loaded from localStorage per user
 
 // ===== DAILY INFO =====
 const DAILY_INFO = {
@@ -1080,55 +1026,12 @@ const DAILY_INFO = {
   ren:       { title:'NUMBER OF RENEWALS',                    text:'Record any existing clients who renewed their coaching contract today or in the past few days.' },
 };
 
-// ===== MENTORING GROUPS =====
-let MENTORING_GROUPS = [
-  { id:1, mentorId:3, name:"Priya Patel's Mentoring Group",    memberIds:[3,1,2] },
-  { id:2, mentorId:1, name:"Sarah Mitchell's Mentoring Group", memberIds:[1,4,5] },
-];
-let nextGroupId = 3;
+// ===== MENTORING GROUPS — loaded from localStorage =====
+let MENTORING_GROUPS = [];
+let nextGroupId = 1;
+let editingGroupId = null;
 
-// ===== PROFILE VERSIONS =====
-const PROFILE_DATA = {
-  current: {
-    experience: '5+ years',
-    idealClients: 'Senior leaders in tech companies who want to scale their impact and lead more authentically.',
-    challenge: 'Getting consistent referrals and building a more reliable pipeline without relying on LinkedIn alone.',
-    currentClients: '8 clients — 6 paying, 2 pro-bono (building case studies)',
-    fullPractice: '15',
-    workFormat: 'Primarily 1:1 online monthly retainers (4 sessions/month). Developing a group programme for Q2.',
-    pricing: '£2,000/month retainer',
-    sources: '1. Referrals from existing clients (50%)\n2. LinkedIn content (30%)\n3. Speaking events and workshops (20%)',
-    insights: 'I realised I\'m closer to a full practice than I thought — I just need to raise my prices to match my experience level.',
-    goals: 'Hit £10k/month consistent income, launch my group programme, and get 2 more retainer clients at my new rate.',
-    questions: 'I\'d love guidance on how to price my group programme and how to talk about it without feeling salesy.',
-  },
-  v2: {
-    experience: '4 years',
-    idealClients: 'Mid-level managers in corporate environments who feel stuck and want more clarity.',
-    challenge: 'Building consistency with my outreach and following up without feeling pushy.',
-    currentClients: '5 clients — 4 paying, 1 pro-bono',
-    fullPractice: '12',
-    workFormat: '1:1 online sessions, bi-weekly, 60 minutes each.',
-    pricing: '£1,500/month',
-    sources: '1. LinkedIn (50%)\n2. Referrals (30%)\n3. Networking events (20%)',
-    insights: 'I realised I haven\'t been charging enough for my experience level.',
-    goals: 'Get to 8 paying clients and raise my rates to £1,800/month.',
-    questions: 'How do I handle clients who want to negotiate my rates down?',
-  },
-  v1: {
-    experience: '3 years',
-    idealClients: 'Professionals going through career transitions.',
-    challenge: 'Figuring out my pricing and positioning — I don\'t know what to charge.',
-    currentClients: '3 clients — 2 paying, 1 pro-bono',
-    fullPractice: '10',
-    workFormat: 'Online video calls, ad hoc sessions.',
-    pricing: '£1,200/month',
-    sources: '1. Word of mouth (80%)\n2. LinkedIn (20%)',
-    insights: 'I\'ve been undervaluing my work for a long time.',
-    goals: 'Build a consistent client base and find my niche.',
-    questions: 'Is it normal to feel like an imposter when you\'re early in your coaching career?',
-  },
-};
+// Profile data loaded from localStorage per user (no hardcoded versions)
 
 // ===== STATE =====
 let currentUser = null;
@@ -1136,6 +1039,56 @@ let currentPeriod = 'school';
 let currentMonth = 'Jan';
 let currentGroupFilter = null;
 let chartsInit = false;
+let _rankCharts = [];
+let _cohortSalesChart = null;
+
+// ===== LOCALSTORAGE =====
+function saveData() {
+  try {
+    localStorage.setItem('ajc_logData', JSON.stringify(LOG_DATA));
+    localStorage.setItem('ajc_groups', JSON.stringify(MENTORING_GROUPS));
+    localStorage.setItem('ajc_nextGroupId', String(nextGroupId));
+  } catch(e) {}
+}
+function loadData() {
+  try {
+    const ld = localStorage.getItem('ajc_logData');
+    if(ld) LOG_DATA = JSON.parse(ld);
+    const mg = localStorage.getItem('ajc_groups');
+    if(mg) MENTORING_GROUPS = JSON.parse(mg);
+    const ng = localStorage.getItem('ajc_nextGroupId');
+    if(ng) nextGroupId = parseInt(ng)||1;
+  } catch(e) {}
+}
+function getUserProfile(userId, ver) {
+  try {
+    const all = JSON.parse(localStorage.getItem('ajc_profiles')||'{}');
+    return (all[String(userId)] && all[String(userId)][ver]) || {};
+  } catch(e) { return {}; }
+}
+function saveUserProfile(userId, ver, data) {
+  try {
+    const all = JSON.parse(localStorage.getItem('ajc_profiles')||'{}');
+    if(!all[String(userId)]) all[String(userId)] = {};
+    all[String(userId)][ver] = data;
+    localStorage.setItem('ajc_profiles', JSON.stringify(all));
+  } catch(e) {}
+}
+function getUserDailyLogs(userId) {
+  try {
+    const all = JSON.parse(localStorage.getItem('ajc_dailyLogs')||'{}');
+    return all[String(userId)] || [];
+  } catch(e) { return []; }
+}
+function appendUserDailyLog(userId, entry) {
+  try {
+    const all = JSON.parse(localStorage.getItem('ajc_dailyLogs')||'{}');
+    if(!all[String(userId)]) all[String(userId)] = [];
+    all[String(userId)].unshift(entry);
+    if(all[String(userId)].length > 100) all[String(userId)] = all[String(userId)].slice(0,100);
+    localStorage.setItem('ajc_dailyLogs', JSON.stringify(all));
+  } catch(e) {}
+}
 
 // ===== UTILS =====
 function p2gbp(pence) {
@@ -1156,6 +1109,65 @@ function showToast(msg) {
   window._tt = setTimeout(()=>t.style.display='none', 2600);
 }
 
+// ===== COHORT STATS =====
+function renderCohortStats() {
+  const st = computeSchoolTotals();
+  const vals = Object.values(st);
+  const sum = f => vals.reduce((s,d)=>s+d[f],0);
+  const cohConv = sum('conv'), cohProp = sum('proposals'), cohSales = sum('sales');
+  const cohIncome = sum('income'), cohRef = sum('ref'), cohRen = sum('ren');
+  const n = vals.length || 1;
+  const avgIncome = (cohIncome / n / MONTHS_IN_SCHOOL * 12) / 100;
+  const icfPct = ((avgIncome - ICF_AVG) / ICF_AVG) * 100;
+  const setText = (id,txt) => { const e=document.getElementById(id); if(e) e.textContent=txt; };
+  setText('coh-conv', cohConv ? cohConv.toLocaleString() : '—');
+  setText('coh-prop', cohProp ? p2gbp(cohProp) : '—');
+  setText('coh-sales', cohSales ? p2gbp(cohSales) : '—');
+  setText('coh-income', cohIncome ? p2gbp(cohIncome) : '—');
+  setText('coh-ref', cohRef ? cohRef.toLocaleString() : '—');
+  setText('coh-ren', cohRen ? cohRen.toLocaleString() : '—');
+  setText('coh-avg-income', avgIncome > 0 ? '£'+Math.round(avgIncome).toLocaleString('en-GB') : '—');
+  const icfEl = document.getElementById('coh-icf-pct');
+  if(icfEl) {
+    if(avgIncome > 0 && icfPct >= 0) { icfEl.textContent = Math.round(icfPct)+'% above ICF avg ↑'; icfEl.className='text-sm font-semibold text-green-600 mb-0.5'; }
+    else if(avgIncome > 0) { icfEl.textContent = Math.abs(Math.round(icfPct))+'% below ICF avg'; icfEl.className='text-sm font-semibold text-orange-500 mb-0.5'; }
+    else { icfEl.textContent = ''; }
+  }
+  const cohPreSales = sum('preSales');
+  const gEl = document.getElementById('cohort-growth-pct');
+  const mEl = document.getElementById('cohort-growth-msg');
+  if(cohPreSales > 0 && cohSales > 0) {
+    const pct = Math.round((cohSales-cohPreSales)/cohPreSales*100);
+    if(gEl) gEl.textContent = (pct>=0?'+':'')+pct+'%';
+    if(mEl) { mEl.textContent = `🎉 Cohort sales grew ${pct>=0?'+':''}${pct}% from pre-school to the school year!`; mEl.className='text-center text-sm font-semibold text-green-600 mt-3'; }
+  } else {
+    if(gEl) gEl.textContent = '—';
+    if(mEl) { mEl.textContent = 'Add pre-school and school-year data to see growth.'; mEl.className='text-center text-sm text-gray-400 mt-3'; }
+  }
+}
+
+// ===== POPULATE SELECTS =====
+function populateCoachSelects() {
+  const coaches = MOCK_USERS.filter(u=>!u.isAdmin).sort((a,b)=>a.name.localeCompare(b.name));
+  // Dashboard coach dropdown
+  const coachSel = document.getElementById('coach-select');
+  if(coachSel) {
+    while(coachSel.options.length > 1) coachSel.remove(1);
+    coaches.forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; coachSel.appendChild(o); });
+  }
+  // Admin mentor select
+  const mentorSel = document.getElementById('admin-mentor-select');
+  if(mentorSel) {
+    while(mentorSel.options.length > 1) mentorSel.remove(1);
+    coaches.forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; mentorSel.appendChild(o); });
+  }
+  // Admin member checkboxes
+  const mList = document.getElementById('admin-members-list');
+  if(mList) {
+    mList.innerHTML = coaches.map(u=>`<label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-100 cursor-pointer hover:border-gray-300 text-sm"><input type="checkbox" value="${u.id}" class="member-checkbox rounded accent-[#020e1d]"> ${u.name}</label>`).join('');
+  }
+}
+
 // ===== AUTH =====
 function fillLogin(email) {
   document.getElementById('login-email').value = email;
@@ -1171,7 +1183,11 @@ function doLogin() {
   document.getElementById('login-error').classList.add('hidden');
   document.getElementById('nav-user-name').textContent = user.name;
   document.getElementById('admin-tab-btn').classList.toggle('hidden', !user.isAdmin);
+  // Bottom nav admin button
+  const bnAdmin = document.getElementById('bn-admin');
+  if(bnAdmin) bnAdmin.style.display = user.isAdmin ? 'flex' : 'none';
   showPage('page-app');
+  populateCoachSelects();
   switchTab('captains-log');
   // Pre-select group filter if user is a mentor
   if (!user.isAdmin) {
@@ -1197,20 +1213,15 @@ function switchTab(tab) {
   document.getElementById('tab-'+tab).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>{
     const on = b.dataset.tab===tab;
-    if (on) {
-      b.classList.add('nav-active');
-      b.classList.remove('text-gray-400');
-      b.style.color = '';
-    } else {
-      b.classList.remove('nav-active');
-      b.classList.add('text-gray-400');
-      b.style.color = '';
-    }
+    if (on) { b.classList.add('nav-active'); b.classList.remove('text-gray-400'); b.style.color=''; }
+    else { b.classList.remove('nav-active'); b.classList.add('text-gray-400'); b.style.color=''; }
   });
-  if (tab==='dashboard' && !chartsInit) { setTimeout(initCharts, 60); chartsInit=true; }
-  if (tab==='daily-log') document.getElementById('daily-date').value = new Date().toISOString().split('T')[0];
+  // Bottom nav active state
+  document.querySelectorAll('.bn-btn').forEach(b=>b.classList.toggle('bn-active', b.id==='bn-'+tab));
+  if (tab==='dashboard') { renderCohortStats(); setTimeout(initCharts, 60); }
+  if (tab==='daily-log') { document.getElementById('daily-date').value = new Date().toISOString().split('T')[0]; renderDailyLogs(); }
   if (tab==='profile') loadProfileVersion('current');
-  if (tab==='admin') renderMentoringGroupsList();
+  if (tab==='admin') { renderMentoringGroupsList(); populateCoachSelects(); }
 }
 
 // ===== CAPTAIN'S LOG =====
@@ -1309,26 +1320,7 @@ function setMonth(month, btn, period) {
   renderCaptainsLog();
 }
 
-function updateBanner() {
-  const isSchool = currentPeriod==='school';
-  const banner = document.getElementById('period-banner');
-  const sub = document.getElementById('period-banner-sub');
-  if (isSchool) {
-    banner.style.background='#020e1d'; banner.style.removeProperty('--amber');
-    document.getElementById('period-banner-icon').textContent = '📚';
-    document.getElementById('period-banner-title').textContent = currentMonth + ' 2026 · School Year';
-    sub.textContent = 'School-year month — this data feeds everyone\'s school year totals and dashboard projections.';
-    sub.style.color = '#92a6b3';
-  } else {
-    banner.style.background='#d97706';
-    document.getElementById('period-banner-icon').textContent = currentMonth==='Total' ? '∑' : '🌱';
-    document.getElementById('period-banner-title').textContent = currentMonth==='Total' ? 'Pre-School Total · Mar – Aug' : currentMonth + ' 2026 · Pre-School Period';
-    sub.textContent = currentMonth==='Total'
-      ? 'Combined totals across all six pre-school months — the full picture of where everyone started.'
-      : 'Pre-school month — this is where everyone was before the school year began. A great baseline to look back on.';
-    sub.style.color = '#fef3c7';
-  }
-}
+function updateBanner() { /* banner removed — period context shown in pills */ }
 
 function renderCaptainsLog() {
   const key = currentPeriod+'-'+currentMonth;
@@ -1380,13 +1372,20 @@ function renderCaptainsLog() {
 
 function updateLog(userId, field, value, key) {
   if (!currentUser||currentUser.id!==userId) return;
-  if (!LOG_DATA[key]) return;
-  const row = LOG_DATA[key].find(r=>r.userId===userId);
-  if (!row) return;
+  // Create month entry if it doesn't exist
+  if (!LOG_DATA[key]) {
+    LOG_DATA[key] = MOCK_USERS.filter(u=>!u.isAdmin).map(u=>({userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}));
+  }
+  let row = LOG_DATA[key].find(r=>r.userId===userId);
+  if (!row) {
+    row = {userId,name:currentUser.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0};
+    LOG_DATA[key].push(row);
+  }
   if (['conv','ref','ren'].includes(field)) row[field]=parseInt(value)||0;
   else row[field]=Math.round(parseFloat(value)*100)||0;
+  saveData();
   renderCaptainsLog();
-  showToast('Your row updated ✓');
+  showToast('Saved ✓');
 }
 
 // ===== DASHBOARD =====
@@ -1410,7 +1409,8 @@ function selectPersonFromDropdown(val) {
     document.getElementById('dash-individual').classList.remove('hidden');
     const uid = parseInt(val);
     renderIndividual(uid);
-    const d = SCHOOL_TOTALS[uid];
+    const st = computeSchoolTotals();
+    const d = st[uid] || MOCK_USERS.find(u=>u.id===uid);
     if (d) {
       lmName.textContent = d.name;
       lmBtn.classList.remove('hidden'); lmBtn.classList.add('inline-flex');
@@ -1420,7 +1420,9 @@ function selectPersonFromDropdown(val) {
 }
 
 function getWeeklyAck(userId) {
-  const d = SCHOOL_TOTALS[userId];
+  const st = computeSchoolTotals();
+  const d = st[userId];
+  if (!d) return {badge:'💙',title:'Welcome to AJC 2026!',sub:'Start logging your conversations, proposals and sales — your stats will appear here.'};
   const first = d.name.split(' ')[0];
   const weekNum = Math.floor(Date.now()/(7*24*60*60*1000));
   const projAnnual = (d.income / MONTHS_IN_SCHOOL) * 12;
@@ -1440,8 +1442,13 @@ function getWeeklyAck(userId) {
   if (salesGrowth !== null && salesGrowth >= 20 && salesGrowth < 50) candidates.push({badge:'📈',title:`${first} has grown their sales by ${salesGrowth.toFixed(0)}% since pre-school!`,sub:`Pre-school sales: ${p2gbp(d.preSales)}. School year sales: ${p2gbp(d.sales)}. Every month in this programme is adding up — keep building!`});
   if (icfPct >= 30) candidates.push({badge:'🌍',title:`${first} is earning ${icfPct.toFixed(0)}% more than the average coach in the world!`,sub:`The ICF global average is £41,713/year. ${first} is on track for ${p2gbp(Math.round(projAnnual/100)*100)}. That is exceptional.`});
   if (icfPct >= 0 && icfPct < 30) candidates.push({badge:'⭐',title:`${first} is tracking above the global coaching average!`,sub:`The ICF global average is £41,713/year. ${first} is on track for ${p2gbp(Math.round(projAnnual/100)*100)}. Being above the world average is worth celebrating.`});
-  if (refRank===1) candidates.push({badge:'🤝',title:`${first} has generated more referrals than anyone in the cohort!`,sub:`${d.ref} referrals this school year — top of the cohort. Referrals are the clearest sign that clients love the work you do.`});
-  candidates.push({badge:'💙',title:`${first} is showing up every month and building something real.`,sub:`${d.conv.toLocaleString()} conversations. ${p2gbp(d.sales)} in sales. ${d.ref} referrals. Each number represents a real moment of showing up. That consistency is how lasting practices are built.`});
+  if (refRank===1 && d.ref > 0) candidates.push({badge:'🤝',title:`${first} has generated more referrals than anyone in the cohort!`,sub:`${d.ref} referrals this school year — top of the cohort. Referrals are the clearest sign that clients love the work you do.`});
+  // Always include a fallback
+  if(d.conv > 0 || d.sales > 0) {
+    candidates.push({badge:'💙',title:`${first} is showing up every month and building something real.`,sub:`${d.conv.toLocaleString()} conversations. ${p2gbp(d.sales)} in sales. ${d.ref} referrals. Each number represents a real moment of showing up. That consistency is how lasting practices are built.`});
+  } else {
+    candidates.push({badge:'🌱',title:`${first}, your journey starts here — every great practice begins with one conversation.`,sub:`Log your first conversations, proposals and sales in the Captain's Log. Your dashboard will come alive as you do.`});
+  }
 
   return candidates[weekNum % candidates.length];
 }
@@ -1449,7 +1456,8 @@ function getWeeklyAck(userId) {
 let _indSalesChart = null;
 
 function renderIndividual(userId) {
-  const d = SCHOOL_TOTALS[userId];
+  const st = computeSchoolTotals();
+  const d = st[userId];
   if (!d) return;
 
   const avgMonthlySales = d.sales / MONTHS_IN_SCHOOL;
@@ -1533,72 +1541,73 @@ function renderIndividual(userId) {
 
 // ===== CHARTS =====
 function initCharts() {
-  // Ranking charts (6 horizontal bars, 3-col grid)
+  const SCHOOL_TOTALS = computeSchoolTotals();
+
+  // Destroy existing rank charts
+  _rankCharts.forEach(c=>{ try{c.destroy();}catch(e){} });
+  _rankCharts = [];
+  if(_cohortSalesChart){ try{_cohortSalesChart.destroy();}catch(e){} _cohortSalesChart=null; }
+
   const rankFields = [
-    { id:'chart-rank-conv',      field:'conv',      label:'Conversations',  gbp:false },
-    { id:'chart-rank-proposals', field:'proposals', label:'Proposals (£)',   gbp:true  },
-    { id:'chart-rank-sales',     field:'sales',     label:'Sales (£)',       gbp:true  },
-    { id:'chart-rank-income',    field:'income',    label:'Income (£)',      gbp:true  },
-    { id:'chart-rank-ref',       field:'ref',       label:'Referrals',       gbp:false },
-    { id:'chart-rank-ren',       field:'ren',       label:'Renewals',        gbp:false },
+    { id:'chart-rank-conv',      field:'conv',      gbp:false },
+    { id:'chart-rank-proposals', field:'proposals', gbp:true  },
+    { id:'chart-rank-sales',     field:'sales',     gbp:true  },
+    { id:'chart-rank-income',    field:'income',    gbp:true  },
+    { id:'chart-rank-ref',       field:'ref',       gbp:false },
+    { id:'chart-rank-ren',       field:'ren',       gbp:false },
   ];
 
-  const BAR_COLORS = ['#020e1d','#bea566','#637480','#92a6b3','#d8c199','#334155','#475569','#64748b','#94a3b8','#cbd5e1'];
+  const BAR_COLORS = ['#020e1d','#bea566','#637480','#92a6b3','#d8c199','#334155'];
 
   rankFields.forEach(({ id, field, gbp }) => {
-    const sorted = Object.entries(SCHOOL_TOTALS)
-      .sort((a,b) => b[1][field] - a[1][field])
-      .slice(0, 10); // top 10
-    const labels = sorted.map(([,d]) => d.name.split(' ')[0]);
-    const fullNames = sorted.map(([,d]) => d.name);
-    const values = sorted.map(([,d]) => gbp ? d[field]/100 : d[field]);
-    const colors = sorted.map((_, i) => BAR_COLORS[i % BAR_COLORS.length]);
-
-    new Chart(document.getElementById(id), {
-      type: 'bar',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 4, barPercentage: 0.7 }] },
-      options: {
-        indexAxis: 'y',
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: ctx => fullNames[ctx[0].dataIndex],
-              label: ctx => {
-                const labelName = field === 'conv' ? 'Conversations' : field === 'proposals' ? 'Total Proposals' : field === 'sales' ? 'Total Sales' : field === 'income' ? 'Total Income' : field === 'ref' ? 'Total Referrals' : 'Total Renewals';
-                const val = gbp ? '£' + Math.round(ctx.raw).toLocaleString('en-GB') : ctx.raw;
-                return `${labelName}: ${val}`;
-              }
-            }
-          }
+    const sorted = Object.entries(SCHOOL_TOTALS).sort((a,b)=>b[1][field]-a[1][field]).slice(0,10);
+    const labels = sorted.map(([,d])=>d.name.split(' ')[0]);
+    const fullNames = sorted.map(([,d])=>d.name);
+    const values = sorted.map(([,d])=>gbp ? d[field]/100 : d[field]);
+    const colors = sorted.map((_,i)=>BAR_COLORS[i%BAR_COLORS.length]);
+    const canvas = document.getElementById(id);
+    if(!canvas) return;
+    const c = new Chart(canvas, {
+      type:'bar',
+      data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderRadius:4, barPercentage:0.7 }] },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{ callbacks:{
+            title:ctx=>fullNames[ctx[0].dataIndex],
+            label:ctx=>{ const v=gbp?'£'+Math.round(ctx.raw).toLocaleString('en-GB'):ctx.raw; return `${v}`; }
+          }}
         },
-        scales: {
-          x: { ticks: { callback: v => gbp ? '£'+Math.round(v/1000)+'k' : v, font:{ size:9 } }, grid: { color:'#f8fafc' } },
-          y: { ticks: { font:{ size:10 } } }
+        scales:{
+          x:{ ticks:{ callback:v=>gbp?(v>=1000?'£'+Math.round(v/1000)+'k':'£'+v):v, font:{size:9} }, grid:{color:'#f8fafc'} },
+          y:{ ticks:{ font:{size:10} } }
         }
       }
     });
+    _rankCharts.push(c);
   });
 
-  // Sales board
   renderSalesBoard();
 
   // Cohort sales growth bar chart
   const cohortPreSales = Object.values(SCHOOL_TOTALS).reduce((s,d)=>s+d.preSales,0);
   const cohortSchoolSales = Object.values(SCHOOL_TOTALS).reduce((s,d)=>s+d.sales,0);
-  new Chart(document.getElementById('chart-cohort-sales'), {
-    type: 'bar',
-    data: {
-      labels: ['Pre-School (Mar–Aug)', 'School Year (Sep–Feb)'],
-      datasets: [{ data: [cohortPreSales/100, cohortSchoolSales/100], backgroundColor: ['#d97706','#020e1d'], borderRadius: 8, barPercentage: 0.55 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '£' + Math.round(ctx.raw).toLocaleString('en-GB') } } },
-      scales: { y: { ticks: { callback: v => '£'+Math.round(v/1000)+'k' } }, x: { grid:{ display:false } } }
-    }
-  });
+  const salesCanvas = document.getElementById('chart-cohort-sales');
+  if(salesCanvas) {
+    _cohortSalesChart = new Chart(salesCanvas, {
+      type:'bar',
+      data:{
+        labels:['Pre-School (Mar–Aug)','School Year (Sep–Feb)'],
+        datasets:[{ data:[cohortPreSales/100, cohortSchoolSales/100], backgroundColor:['#d97706','#020e1d'], borderRadius:8, barPercentage:0.55 }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>'£'+Math.round(ctx.raw).toLocaleString('en-GB') } } },
+        scales:{ y:{ ticks:{ callback:v=>v>0?'£'+Math.round(v/1000)+'k':'£0' } }, x:{ grid:{ display:false } } }
+      }
+    });
+  }
 }
 
 function renderSalesBoard() {
@@ -1614,7 +1623,7 @@ function renderSalesBoard() {
 
   // Place each coach in their highest qualifying tier
   const buckets = TIERS.map(() => []);
-  Object.values(SCHOOL_TOTALS).forEach(d => {
+  Object.values(computeSchoolTotals()).forEach(d => {
     const projAnnual = (d.proposals / MONTHS_IN_SCHOOL) * 12 / 100; // in £
     for (let i = TIERS.length - 1; i >= 0; i--) {
       if (projAnnual >= TIERS[i].min) { buckets[i].push(d.name); break; }
@@ -1643,15 +1652,67 @@ function renderSalesBoard() {
 
 // ===== DAILY LOG =====
 function saveDailyLog() {
-  const s=document.getElementById('daily-saved');
-  s.classList.remove('hidden');
+  if(!currentUser) return;
+  const date = document.getElementById('daily-date').value;
+  if(!date){ showToast('Please select a date first'); return; }
+  const conv = parseInt(document.getElementById('daily-conv').value)||0;
+  const proposals = Math.round((parseFloat(document.getElementById('daily-proposals').value)||0)*100);
+  const sales = Math.round((parseFloat(document.getElementById('daily-sales').value)||0)*100);
+  const income = Math.round((parseFloat(document.getElementById('daily-income').value)||0)*100);
+  const ref = parseInt(document.getElementById('daily-ref').value)||0;
+  const ren = parseInt(document.getElementById('daily-ren').value)||0;
+  if(!conv && !proposals && !sales && !income && !ref && !ren){ showToast('Nothing to save — fill in at least one field'); return; }
+
+  // Save to personal daily log history
+  appendUserDailyLog(currentUser.id, {date,conv,proposals,sales,income,ref,ren});
+
+  // Accumulate into captain's log for the right period/month
+  const d = new Date(date);
+  const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mName = mNames[d.getMonth()];
+  const mo = d.getMonth(); // 0-indexed
+  const isSchool = mo>=8 || mo<=1; // Sep(8)-Feb(1)
+  const key = (isSchool?'school':'preschool')+'-'+mName;
+  if(!LOG_DATA[key]) LOG_DATA[key] = MOCK_USERS.filter(u=>!u.isAdmin).map(u=>({userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}));
+  let row = LOG_DATA[key].find(r=>r.userId===currentUser.id);
+  if(!row){ row={userId:currentUser.id,name:currentUser.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}; LOG_DATA[key].push(row); }
+  row.conv+=conv; row.proposals+=proposals; row.sales+=sales; row.income+=income; row.ref+=ref; row.ren+=ren;
+  saveData();
+
+  // Clear fields
+  ['daily-conv','daily-proposals','daily-sales','daily-income','daily-ref','daily-ren'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderDailyLogs();
   showToast('Entry saved — great work today! 🌟');
-  setTimeout(()=>s.classList.add('hidden'),3000);
+}
+
+function renderDailyLogs() {
+  if(!currentUser) return;
+  const logs = getUserDailyLogs(currentUser.id);
+  const tbody = document.getElementById('daily-log-recent-body');
+  if(!tbody) return;
+  if(!logs.length){
+    tbody.innerHTML='<tr><td colspan="6" class="text-center text-gray-400 text-sm py-4 italic">No entries yet — log your first activity above!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = logs.slice(0,15).map(e=>`<tr>
+    <td class="text-gray-500">${formatLogDate(e.date)}</td>
+    <td>${e.conv||0}</td>
+    <td>${e.proposals ? p2gbp(e.proposals) : '—'}</td>
+    <td>${e.income ? p2gbp(e.income) : '—'}</td>
+    <td>${e.ref||0}</td>
+    <td>${e.ren||0}</td>
+  </tr>`).join('');
+}
+
+function formatLogDate(str) {
+  if(!str) return '—';
+  const d = new Date(str+'T00:00:00');
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
 
 // ===== PROFILE =====
 function loadProfileVersion(ver) {
-  const data = PROFILE_DATA[ver] || PROFILE_DATA.current;
+  const data = currentUser ? getUserProfile(currentUser.id, ver) : {};
   const isCurrent = ver === 'current';
 
   const banner = document.getElementById('past-version-banner');
@@ -1667,7 +1728,7 @@ function loadProfileVersion(ver) {
   const setField = (id, val, ro) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.value = val;
+    el.value = val || '';
     el.disabled = ro;
     el.classList.toggle('readonly-field', ro);
     el.classList.toggle('border-gray-200', !ro);
@@ -1679,10 +1740,9 @@ function loadProfileVersion(ver) {
   setField('pf-current-clients', data.currentClients, !isCurrent);
   setField('pf-full-practice', data.fullPractice, !isCurrent);
   setField('pf-work-format', data.workFormat, !isCurrent);
-  // pricing is now a free textarea — display as text
   const pfPricing = document.getElementById('pf-pricing');
   if (pfPricing) {
-    pfPricing.value = typeof data.pricing === 'number' ? '£' + data.pricing.toLocaleString('en-GB') + '/month' : (data.pricing || '');
+    pfPricing.value = data.pricing || '';
     pfPricing.disabled = !isCurrent;
     pfPricing.classList.toggle('readonly-field', !isCurrent);
     pfPricing.classList.toggle('border-gray-200', isCurrent);
@@ -1694,7 +1754,16 @@ function loadProfileVersion(ver) {
 }
 
 function saveProfile() {
-  showToast('Profile saved — thank you for keeping it up to date! ✨');
+  if(!currentUser) return;
+  const gv = id => document.getElementById(id)?.value || '';
+  const data = {
+    experience: gv('pf-experience'), idealClients: gv('pf-ideal-clients'), challenge: gv('pf-challenge'),
+    currentClients: gv('pf-current-clients'), fullPractice: gv('pf-full-practice'), workFormat: gv('pf-work-format'),
+    pricing: gv('pf-pricing'), sources: gv('pf-sources'), insights: gv('pf-insights'),
+    goals: gv('pf-goals'), questions: gv('pf-questions'),
+  };
+  saveUserProfile(currentUser.id, 'current', data);
+  showToast('Profile saved ✨');
 }
 
 // ===== ADMIN =====
@@ -1725,7 +1794,7 @@ function copyInviteLink(slug) {
 
 function exportCSV() {
   const rows=[['Name','Conversations','Proposals (£)','Sales (£)','Income (£)','Referrals','Renewals']];
-  Object.values(SCHOOL_TOTALS).sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>
+  Object.values(computeSchoolTotals()).sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>
     rows.push([d.name,d.conv,(d.proposals/100).toFixed(2),(d.sales/100).toFixed(2),(d.income/100).toFixed(2),d.ref,d.ren])
   );
   const a=Object.assign(document.createElement('a'),{
@@ -1744,29 +1813,48 @@ function createMentoringGroup() {
   if (!mentor) return;
 
   const checked = [...document.querySelectorAll('.member-checkbox:checked')].map(c=>parseInt(c.value));
-  if (!checked.includes(mentorId)) checked.push(mentorId); // mentor is always a member
+  if (!checked.includes(mentorId)) checked.push(mentorId);
   if (checked.length < 2) { showToast('Please select at least one other member'); return; }
 
-  const group = {
-    id: nextGroupId++,
-    mentorId,
-    name: `${mentor.name}'s Mentoring Group`,
-    memberIds: checked,
-  };
-  MENTORING_GROUPS.push(group);
+  if (editingGroupId !== null) {
+    // Update existing group
+    const group = MENTORING_GROUPS.find(g=>g.id===editingGroupId);
+    if(group){ group.mentorId=mentorId; group.name=`${mentor.name}'s Mentoring Group`; group.memberIds=checked; }
+    editingGroupId = null;
+    const btn = document.getElementById('create-group-btn');
+    if(btn) btn.textContent = 'Create Group';
+    showToast('Group updated ✓');
+  } else {
+    const group = { id:nextGroupId++, mentorId, name:`${mentor.name}'s Mentoring Group`, memberIds:checked };
+    MENTORING_GROUPS.push(group);
+    showToast(`${group.name} created! ✓`);
+  }
 
-  // Reset form
   document.getElementById('admin-mentor-select').value = '';
   document.querySelectorAll('.member-checkbox').forEach(c=>c.checked=false);
-
+  saveData();
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
-  showToast(`${group.name} created! ✓`);
+}
+
+function editMentoringGroup(id) {
+  const group = MENTORING_GROUPS.find(g=>g.id===id);
+  if(!group) return;
+  editingGroupId = id;
+  const mentorSel = document.getElementById('admin-mentor-select');
+  if(mentorSel) mentorSel.value = group.mentorId;
+  document.querySelectorAll('.member-checkbox').forEach(cb=>{ cb.checked = group.memberIds.includes(parseInt(cb.value)); });
+  const btn = document.getElementById('create-group-btn');
+  if(btn) btn.textContent = 'Save Changes';
+  document.getElementById('admin-mentor-select')?.scrollIntoView({behavior:'smooth',block:'center'});
+  showToast('Edit the group above and click Save Changes');
 }
 
 function deleteMentoringGroup(id) {
   MENTORING_GROUPS = MENTORING_GROUPS.filter(g=>g.id!==id);
   if (currentGroupFilter===id) { currentGroupFilter=null; renderCaptainsLog(); }
+  if(editingGroupId===id){ editingGroupId=null; const btn=document.getElementById('create-group-btn'); if(btn) btn.textContent='Create Group'; }
+  saveData();
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
   showToast('Group removed');
@@ -1783,14 +1871,17 @@ function renderMentoringGroupsList() {
     const mentor = MOCK_USERS.find(u=>u.id===g.mentorId);
     const members = g.memberIds.map(id=>MOCK_USERS.find(u=>u.id===id)?.name).filter(Boolean);
     return `<div class="flex items-start justify-between p-4 rounded-xl" style="background:#faf5e8;border:1px solid #e8ddc4">
-      <div>
+      <div class="flex-1 min-w-0">
         <div class="text-sm font-semibold text-gray-800">${g.name}</div>
         <div class="text-xs text-gray-500 mt-0.5">Mentor: ${mentor?.name||'—'} · ${g.memberIds.length} members</div>
         <div class="text-xs mt-1.5 flex flex-wrap gap-1">
           ${members.map(m=>`<span class="px-2 py-0.5 rounded-full text-xs" style="background:#020e1d;color:white">${m.split(' ')[0]}</span>`).join('')}
         </div>
       </div>
-      <button onclick="deleteMentoringGroup(${g.id})" class="text-xs text-gray-400 hover:text-red-500 transition ml-3 mt-0.5 flex-shrink-0">Remove</button>
+      <div class="flex items-center gap-2 ml-3 flex-shrink-0">
+        <button onclick="editMentoringGroup(${g.id})" class="text-xs px-2.5 py-1 rounded-lg font-medium" style="background:#020e1d;color:white">Edit</button>
+        <button onclick="deleteMentoringGroup(${g.id})" class="text-xs text-red-400 hover:text-red-600 transition font-medium">Remove</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1869,9 +1960,10 @@ function openProfileModal() {
   const btn = document.getElementById('learn-more-btn');
   const userId = btn._userId;
   if (!userId) return;
-  const p = COACH_PROFILES[userId];
-  const d = SCHOOL_TOTALS[userId];
-  if (!p || !d) return;
+  const p = getUserProfile(userId, 'current');
+  const st = computeSchoolTotals();
+  const d = st[userId] || MOCK_USERS.find(u=>u.id===userId);
+  if (!d) return;
   const first = d.name.split(' ')[0];
   document.getElementById('pm-name').textContent = d.name;
 
@@ -1882,17 +1974,16 @@ function openProfileModal() {
        </div>`
     : '';
 
-  document.getElementById('pm-body').innerHTML = `
-    <p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f1f5f9">
-      ${first} has been a professional coach for <strong>${p.experience}</strong>. Their ideal clients are <strong>${p.idealClients}</strong>
-    </p>
+  const hasData = p && Object.values(p).some(v=>v);
+  document.getElementById('pm-body').innerHTML = hasData ? `
+    ${p.experience ? `<p style="font-size:15px;color:#374151;line-height:1.8;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f1f5f9">${first} has been a professional coach for <strong>${p.experience}</strong>${p.idealClients ? `. Their ideal clients are <strong>${p.idealClients}</strong>` : ''}.</p>` : ''}
     ${row('Current challenge', p.challenge)}
-    ${row('Current client load', `${p.clients} (full practice: ${p.fullPractice} clients)`)}
+    ${p.currentClients ? row('Current client load', `${p.currentClients}${p.fullPractice ? ` (full practice: ${p.fullPractice} clients)` : ''}`) : ''}
     ${row('How people work with them', p.workFormat)}
     ${row('Pricing', p.pricing)}
     ${row('Where clients come from', p.sources)}
-    ${row('Goals until March', p.goals)}
-  `;
+    ${row('Goals', p.goals)}
+  ` : `<div style="text-align:center;padding:40px 20px;color:#94a3b8"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" style="display:inline-block;margin-bottom:12px" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-size:15px;font-weight:600;color:#64748b;margin-bottom:6px">${first} hasn't filled in their profile yet</div><div style="font-size:13px">Once they complete their profile, it will appear here.</div></div>`;
   document.getElementById('profile-modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
@@ -1960,6 +2051,8 @@ document.addEventListener('click', (e) => {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', ()=>{
+  loadData();
+  populateCoachSelects();
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
 });
