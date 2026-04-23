@@ -1139,10 +1139,11 @@ function subscribeToRealtimeUpdates(cohortId) {
   if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
 
   _realtimeChannel = sb
-    .channel('log_data_'+cohortId)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'log_data', filter: `cohort_id=eq.${cohortId}` }, payload => {
+    .channel('log_data_all')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'log_data' }, payload => {
       const r = payload.new || payload.old;
       if (!r) return;
+      if (r.cohort_id !== cohortId) return; // client-side filter
       const key = r.period_key;
       if (!LOG_DATA[key]) LOG_DATA[key] = [];
       const idx = LOG_DATA[key].findIndex(row => row.userId === r.user_id);
@@ -1680,12 +1681,13 @@ function updateLog(userId, field, value, key) {
   const tKey = userId+'-'+key;
   clearTimeout(_logSaveTimers[tKey]);
   _logSaveTimers[tKey] = setTimeout(async()=>{
-    await sb.from('log_data').upsert({
+    const { error } = await sb.from('log_data').upsert({
       cohort_id:currentCohortId, period_key:key, user_id:userId, user_name:row.name,
       conv:row.conv, proposals:row.proposals, sales:row.sales, income:row.income, ref:row.ref, ren:row.ren
     },{onConflict:'cohort_id,period_key,user_id'});
-    showToast('Saved ✓');
-  }, 800);
+    if (!error) showToast('Saved ✓');
+    else showToast('⚠️ Save failed — check connection');
+  }, 50); // Near-immediate — prevents data loss on refresh
 }
 
 // ===== DASHBOARD =====
