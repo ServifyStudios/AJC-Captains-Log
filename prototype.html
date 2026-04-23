@@ -1196,7 +1196,11 @@ async function getUserProfile(userId, ver) {
   return data?.data || {};
 }
 async function saveUserProfile(userId, ver, profileData) {
-  await sb.from('profiles').upsert({user_id:userId,version:ver,data:profileData},{onConflict:'user_id,version'});
+  const { data:pUp, error:pUpErr } = await sb.from('profiles').update({data:profileData})
+    .eq('user_id',userId).eq('version',ver).select('id');
+  if (pUpErr || !pUp || pUp.length===0) {
+    await sb.from('profiles').insert({user_id:userId, version:ver, data:profileData});
+  }
 }
 async function getUserDailyLogs(userId) {
   const { data } = await sb.from('daily_logs').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(100);
@@ -1984,10 +1988,12 @@ async function saveDailyLog() {
   let row = LOG_DATA[key].find(r=>r.userId===currentUser.id);
   if(!row){ row={userId:currentUser.id,name:currentUser.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}; LOG_DATA[key].push(row); }
   row.conv+=conv; row.proposals+=proposals; row.sales+=sales; row.income+=income; row.ref+=ref; row.ren+=ren;
-  await sb.from('log_data').upsert({
-    cohort_id:currentCohortId, period_key:key, user_id:currentUser.id, user_name:currentUser.name,
-    conv:row.conv, proposals:row.proposals, sales:row.sales, income:row.income, ref:row.ref, ren:row.ren
-  },{onConflict:'cohort_id,period_key,user_id'});
+  const dlPayload = { user_name:currentUser.name, conv:row.conv, proposals:row.proposals, sales:row.sales, income:row.income, ref:row.ref, ren:row.ren };
+  const { data:dlUp, error:dlUpErr } = await sb.from('log_data').update(dlPayload)
+    .eq('cohort_id',currentCohortId).eq('period_key',key).eq('user_id',currentUser.id).select('id');
+  if (dlUpErr || !dlUp || dlUp.length===0) {
+    await sb.from('log_data').insert({ cohort_id:currentCohortId, period_key:key, user_id:currentUser.id, ...dlPayload });
+  }
   showLoading(false);
 
   // Clear fields
