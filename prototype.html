@@ -1118,6 +1118,7 @@ let _nextCohortId = 1;
 let _pendingCohortId = null;
 let _pendingCohortToken = null;
 let USER_COHORTS = []; // junction table rows: {id, user_id, cohort_id}
+let _realtimeChannel = null;
 
 // ===== DATA LAYER (Supabase) =====
 async function loadData() {
@@ -1133,6 +1134,44 @@ async function loadData() {
   MENTORING_GROUPS = (groupsRes.data||[]).map(mapGroup);
   USER_COHORTS = (ucRes.data||[]);
 }
+function subscribeToRealtimeUpdates(cohortId) {
+  // Tear down any existing channel
+  if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
+
+  _realtimeChannel = sb
+    .channel('log_data_'+cohortId)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'log_data', filter: `cohort_id=eq.${cohortId}` }, payload => {
+      const r = payload.new || payload.old;
+      if (!r) return;
+      const key = r.period_key;
+      if (!LOG_DATA[key]) LOG_DATA[key] = [];
+      const idx = LOG_DATA[key].findIndex(row => row.userId === r.user_id);
+      const updated = { userId:r.user_id, name:r.user_name, conv:r.conv||0, proposals:r.proposals||0, sales:r.sales||0, income:r.income||0, ref:r.ref||0, ren:r.ren||0 };
+
+      if (payload.eventType === 'DELETE') {
+        if (idx >= 0) LOG_DATA[key].splice(idx, 1);
+      } else {
+        // Skip re-render if data identical to local copy (own debounced save echoing back)
+        const ex = idx >= 0 ? LOG_DATA[key][idx] : null;
+        const changed = !ex || ex.conv!==updated.conv || ex.proposals!==updated.proposals || ex.sales!==updated.sales || ex.income!==updated.income || ex.ref!==updated.ref || ex.ren!==updated.ren;
+        if (idx >= 0) LOG_DATA[key][idx] = updated; else LOG_DATA[key].push(updated);
+        if (!changed) return; // own save echoing back — no re-render needed
+      }
+
+      // Don't disrupt a cell the user is currently typing in
+      const active = document.activeElement;
+      const tbody = document.getElementById('captains-log-body');
+      if (tbody && tbody.contains(active)) {
+        // Re-render after they blur
+        const onBlur = () => { renderCaptainsLog(); active.removeEventListener('blur', onBlur); };
+        active.addEventListener('blur', onBlur);
+        return;
+      }
+      renderCaptainsLog();
+    })
+    .subscribe();
+}
+
 async function reloadUserCohorts() {
   try { const{data}=await sb.from('user_cohorts').select('*'); USER_COHORTS=data||[]; } catch(e){ USER_COHORTS=[]; }
 }
@@ -1303,6 +1342,7 @@ async function doLogin(skipReload) {
   if (currentCohortId != null) {
     showLoading(true, 'Loading data…');
     await loadCohortData(currentCohortId);
+    subscribeToRealtimeUpdates(currentCohortId);
     showLoading(false);
   }
   MOCK_USERS = USERS;
@@ -1324,6 +1364,7 @@ async function doLogin(skipReload) {
 }
 function doLogout() {
   try { localStorage.removeItem('ajc_session'); } catch(e){}
+  if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   currentUser = null; currentCohortId = null; currentCohortArchived = false;
   currentGroupFilter = null; LOG_DATA = {};
   showPage('page-login');
@@ -1386,6 +1427,7 @@ async function switchCohort(cohortId) {
   currentCohortArchived = cohort ? !!cohort.archived : false;
   showLoading(true, 'Loading cohort…');
   await loadCohortData(cohortId);
+  subscribeToRealtimeUpdates(cohortId);
   showLoading(false);
   MOCK_USERS = USERS;
   populateCoachSelects(); renderCaptainsLog(); renderCohortList(); updateNavCohortDisplay();
