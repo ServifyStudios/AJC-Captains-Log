@@ -1666,20 +1666,23 @@ function renderCaptainsLog() {
   document.getElementById('ft-ren').textContent = totals.ren;
 }
 
-// Reliable save: UPDATE existing row, INSERT if none matched
+// Reliable save: SELECT → UPDATE or INSERT
 async function saveLogRow(cohortId, key, userId, payload) {
+  if (!cohortId || !userId) { console.warn('saveLogRow: missing cohortId or userId'); return; }
   try {
-    const { count } = await sb.from('log_data')
-      .update(payload, { count: 'exact' })
-      .eq('cohort_id', cohortId).eq('period_key', key).eq('user_id', userId);
-    if (!count || count === 0) {
-      // Row doesn't exist yet — insert
-      const { error } = await sb.from('log_data')
-        .insert({ cohort_id:cohortId, period_key:key, user_id:userId, ...payload });
-      if (error) { console.error('log insert error:', error); showToast('⚠️ Save failed'); return; }
+    const { data: existing } = await sb.from('log_data')
+      .select('id')
+      .eq('cohort_id', cohortId).eq('period_key', key).eq('user_id', userId)
+      .maybeSingle();
+    let error;
+    if (existing?.id) {
+      ({ error } = await sb.from('log_data').update(payload).eq('id', existing.id));
+    } else {
+      ({ error } = await sb.from('log_data').insert({ cohort_id:cohortId, period_key:key, user_id:userId, ...payload }));
     }
-    showToast('Saved ✓');
-  } catch(e) { console.error('saveLogRow exception:', e); showToast('⚠️ Save failed'); }
+    if (error) { console.error('saveLogRow error:', JSON.stringify(error)); showToast('⚠️ Save failed: '+error.message); }
+    else showToast('Saved ✓');
+  } catch(e) { console.error('saveLogRow exception:', String(e)); showToast('⚠️ Save failed'); }
 }
 
 const _logSaveTimers = {};
