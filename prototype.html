@@ -1198,9 +1198,10 @@ async function getUserProfile(userId, ver) {
   return data?.data || {};
 }
 async function saveUserProfile(userId, ver, profileData) {
-  const { count } = await sb.from('profiles').update({data:profileData}, {count:'exact'})
-    .eq('user_id',userId).eq('version',ver);
-  if (!count || count === 0) {
+  const { data: existing } = await sb.from('profiles').select('id').eq('user_id',userId).eq('version',ver).maybeSingle();
+  if (existing?.id) {
+    await sb.from('profiles').update({data:profileData}).eq('id', existing.id);
+  } else {
     await sb.from('profiles').insert({user_id:userId, version:ver, data:profileData});
   }
 }
@@ -1387,7 +1388,7 @@ async function doRegister() {
   if (!_pendingCohortId) { showErr('No cohort linked — please use your invite link.'); return; }
   // Check email — if exists, add to this cohort instead of error
   showLoading(true, 'Joining cohort…');
-  const { data:existing } = await sb.from('users').select('id,password').eq('email',email).maybeSingle();
+  const { data:existing } = await sb.from('users').select('id,password,cohort_id').eq('email',email).maybeSingle();
   if (existing) {
     if (existing.password !== pw) { showLoading(false); showErr('That email is already registered — sign in with your existing password, or use the password you set when you first joined.'); return; }
     // Add to new cohort via junction table
