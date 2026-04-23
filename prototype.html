@@ -6,6 +6,7 @@
 <title>AJC Captain's Log</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
@@ -818,6 +819,11 @@
   </nav>
 </div><!-- end page-app -->
 <div id="toast"></div>
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(2,14,29,.55);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#bea566" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+  <div style="color:white;font-size:13px;font-weight:500" id="loading-msg">Loading…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <!-- ==================== COLUMN INFO TOOLTIP ==================== -->
 <div id="col-tooltip" class="col-tooltip" style="display:none">
@@ -914,6 +920,31 @@
 </div>
 
 <script>
+// ===== SUPABASE =====
+const { createClient } = supabase;
+const sb = createClient(
+  'https://vchummkoiqhiikgwcbhb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjaHVtbWtvaXFoaWlrZ3djYmhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzIzMDcsImV4cCI6MjA5MjUwODMwN30.VapmxLshmE9_zD5OGZ1ds53Sr59njzfFNpaT6jM-bt8'
+);
+
+function showLoading(show, msg) {
+  const el = document.getElementById('loading-overlay');
+  if (!el) return;
+  el.style.display = show ? 'flex' : 'none';
+  if (msg) { const m = document.getElementById('loading-msg'); if(m) m.textContent = msg; }
+}
+
+// Map DB snake_case → app camelCase
+function mapUser(u) {
+  return { id:u.id, email:u.email, name:u.name, password:u.password, isAdmin:u.is_admin, cohortId:u.cohort_id };
+}
+function mapCohort(c) {
+  return { id:c.id, name:c.name, token:c.token, archived:c.archived, created:c.created_at };
+}
+function mapGroup(g) {
+  return { id:g.id, mentorId:g.mentor_id, name:g.name, memberIds:Array.isArray(g.member_ids)?g.member_ids:(typeof g.member_ids==='string'?JSON.parse(g.member_ids||'[]'):g.member_ids||[]), cohortId:g.cohort_id };
+}
+
 // ===== CONSTANTS =====
 const ICF_AVG = 41713;
 const MONTHS_IN_SCHOOL = 6;
@@ -1046,70 +1077,54 @@ let _nextCohortId = 1;
 let _pendingCohortId = null;
 let _pendingCohortToken = null;
 
-// ===== LOCALSTORAGE =====
-function saveData() {
-  try {
-    localStorage.setItem('ajc_users', JSON.stringify(USERS));
-    localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
-    if (currentCohortId != null) localStorage.setItem('ajc_logData_'+currentCohortId, JSON.stringify(LOG_DATA));
-    localStorage.setItem('ajc_groups', JSON.stringify(MENTORING_GROUPS));
-    localStorage.setItem('ajc_nextGroupId', String(nextGroupId));
-  } catch(e) {}
+// ===== DATA LAYER (Supabase) =====
+async function loadData() {
+  const [cohortsRes, usersRes, groupsRes] = await Promise.all([
+    sb.from('cohorts').select('*').order('created_at'),
+    sb.from('users').select('*').order('id'),
+    sb.from('mentoring_groups').select('*').order('id')
+  ]);
+  COHORTS = (cohortsRes.data||[]).map(mapCohort);
+  USERS   = (usersRes.data||[]).map(mapUser);
+  MOCK_USERS = USERS;
+  MENTORING_GROUPS = (groupsRes.data||[]).map(mapGroup);
 }
-function loadData() {
-  try {
-    const us = localStorage.getItem('ajc_users');
-    USERS = us ? JSON.parse(us) : [];
-    if (!USERS.find(u=>u.isAdmin)) USERS.unshift({...ADMIN_SEED});
-    MOCK_USERS = USERS;
-    const co = localStorage.getItem('ajc_cohorts');
-    COHORTS = co ? JSON.parse(co) : [];
-    const nci = localStorage.getItem('ajc_nextCohortId');
-    if (nci) _nextCohortId = parseInt(nci)||1;
-    const mg = localStorage.getItem('ajc_groups');
-    if(mg) MENTORING_GROUPS = JSON.parse(mg);
-    const ng = localStorage.getItem('ajc_nextGroupId');
-    if(ng) nextGroupId = parseInt(ng)||1;
-  } catch(e) {
-    if (!USERS.find(u=>u.isAdmin)) USERS.unshift({...ADMIN_SEED});
-    MOCK_USERS = USERS;
-  }
+async function loadCohortData(cohortId) {
+  const { data } = await sb.from('log_data').select('*').eq('cohort_id', cohortId);
+  LOG_DATA = {};
+  (data||[]).forEach(r=>{
+    if(!LOG_DATA[r.period_key]) LOG_DATA[r.period_key]=[];
+    LOG_DATA[r.period_key].push({userId:r.user_id,name:r.user_name,conv:r.conv||0,proposals:r.proposals||0,sales:r.sales||0,income:r.income||0,ref:r.ref||0,ren:r.ren||0});
+  });
 }
-function loadCohortData(cohortId) {
-  try {
-    const ld = localStorage.getItem('ajc_logData_'+cohortId);
-    LOG_DATA = ld ? JSON.parse(ld) : {};
-  } catch(e) { LOG_DATA = {}; }
+async function getUserProfile(userId, ver) {
+  const { data } = await sb.from('profiles').select('data').eq('user_id',userId).eq('version',ver).maybeSingle();
+  return data?.data || {};
 }
-function getUserProfile(userId, ver) {
-  try {
-    const all = JSON.parse(localStorage.getItem('ajc_profiles')||'{}');
-    return (all[String(userId)] && all[String(userId)][ver]) || {};
-  } catch(e) { return {}; }
+async function saveUserProfile(userId, ver, profileData) {
+  await sb.from('profiles').upsert({user_id:userId,version:ver,data:profileData},{onConflict:'user_id,version'});
 }
-function saveUserProfile(userId, ver, data) {
-  try {
-    const all = JSON.parse(localStorage.getItem('ajc_profiles')||'{}');
-    if(!all[String(userId)]) all[String(userId)] = {};
-    all[String(userId)][ver] = data;
-    localStorage.setItem('ajc_profiles', JSON.stringify(all));
-  } catch(e) {}
+async function getUserDailyLogs(userId) {
+  const { data } = await sb.from('daily_logs').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(100);
+  return (data||[]).map(r=>({date:r.log_date,conv:r.conv||0,proposals:r.proposals||0,sales:r.sales||0,income:r.income||0,ref:r.ref||0,ren:r.ren||0}));
 }
-function getUserDailyLogs(userId) {
-  try {
-    const all = JSON.parse(localStorage.getItem('ajc_dailyLogs')||'{}');
-    return all[String(userId)] || [];
-  } catch(e) { return []; }
+async function appendUserDailyLog(userId, entry) {
+  await sb.from('daily_logs').insert({user_id:userId,log_date:entry.date,conv:entry.conv,proposals:entry.proposals,sales:entry.sales,income:entry.income,ref:entry.ref,ren:entry.ren});
 }
-function appendUserDailyLog(userId, entry) {
-  try {
-    const all = JSON.parse(localStorage.getItem('ajc_dailyLogs')||'{}');
-    if(!all[String(userId)]) all[String(userId)] = [];
-    all[String(userId)].unshift(entry);
-    if(all[String(userId)].length > 100) all[String(userId)] = all[String(userId)].slice(0,100);
-    localStorage.setItem('ajc_dailyLogs', JSON.stringify(all));
-  } catch(e) {}
+async function reloadUsers() {
+  const { data } = await sb.from('users').select('*').order('id');
+  USERS = (data||[]).map(mapUser); MOCK_USERS = USERS;
 }
+async function reloadGroups() {
+  const { data } = await sb.from('mentoring_groups').select('*').order('id');
+  MENTORING_GROUPS = (data||[]).map(mapGroup);
+}
+async function reloadCohorts() {
+  const { data } = await sb.from('cohorts').select('*').order('created_at');
+  COHORTS = (data||[]).map(mapCohort);
+}
+// Legacy stub — no-op (all saves happen inline now)
+function saveData() {}
 
 // ===== UTILS =====
 function p2gbp(pence) {
@@ -1195,9 +1210,13 @@ function fillLogin(email, pw) {
   document.getElementById('login-password').value = pw || 'password';
   doLogin();
 }
-function doLogin() {
+async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pw = document.getElementById('login-password').value.trim();
+  const pw    = document.getElementById('login-password').value.trim();
+  // Re-fetch users from Supabase so any browser can log in
+  showLoading(true, 'Signing in…');
+  await reloadUsers();
+  showLoading(false);
   const user = USERS.find(u=>u.email===email && u.password===pw);
   if (!user) { document.getElementById('login-error').classList.remove('hidden'); return; }
   currentUser = user;
@@ -1206,7 +1225,6 @@ function doLogin() {
   document.getElementById('admin-tab-btn').classList.toggle('hidden', !user.isAdmin);
   const bnAdmin = document.getElementById('bn-admin');
   if(bnAdmin) bnAdmin.style.display = user.isAdmin ? 'flex' : 'none';
-  // Set cohort context
   if (user.isAdmin) {
     const first = COHORTS[0];
     currentCohortId = first ? first.id : null;
@@ -1216,7 +1234,11 @@ function doLogin() {
     const cohort = COHORTS.find(c=>c.id===currentCohortId);
     currentCohortArchived = cohort ? !!cohort.archived : false;
   }
-  if (currentCohortId != null) loadCohortData(currentCohortId);
+  if (currentCohortId != null) {
+    showLoading(true, 'Loading data…');
+    await loadCohortData(currentCohortId);
+    showLoading(false);
+  }
   MOCK_USERS = USERS;
   showPage('page-app');
   updateNavCohortDisplay();
@@ -1234,14 +1256,11 @@ function doLogin() {
   renderCaptainsLog();
 }
 function doLogout() {
-  currentUser = null;
-  currentCohortId = null;
-  currentCohortArchived = false;
-  currentGroupFilter = null;
-  LOG_DATA = {};
+  currentUser = null; currentCohortId = null; currentCohortArchived = false;
+  currentGroupFilter = null; LOG_DATA = {};
   showPage('page-login');
 }
-function doRegister() {
+async function doRegister() {
   const firstName = (document.getElementById('reg-first-name').value||'').trim();
   const lastName  = (document.getElementById('reg-last-name').value||'').trim();
   const email     = (document.getElementById('reg-email').value||'').trim().toLowerCase();
@@ -1250,19 +1269,24 @@ function doRegister() {
   const showErr   = msg => { if(errEl){errEl.textContent=msg;errEl.classList.remove('hidden');} };
   if (!firstName||!lastName||!email||!pw) { showErr('Please fill in all fields.'); return; }
   if (!_pendingCohortId) { showErr('No cohort linked — please use your invite link.'); return; }
-  if (USERS.find(u=>u.email===email)) { showErr('This email is already registered — please sign in.'); return; }
-  const newUser = { id:Date.now(), email, name:firstName+' '+lastName, password:pw, isAdmin:false, cohortId:_pendingCohortId };
-  USERS.push(newUser);
-  MOCK_USERS = USERS;
-  localStorage.setItem('ajc_users', JSON.stringify(USERS));
+  // Check email not already used
+  showLoading(true, 'Creating account…');
+  const { data:existing } = await sb.from('users').select('id').eq('email',email).maybeSingle();
+  if (existing) { showLoading(false); showErr('This email is already registered — please sign in.'); return; }
+  const { data:newRow, error } = await sb.from('users').insert({
+    email, name:firstName+' '+lastName, password:pw, is_admin:false, cohort_id:_pendingCohortId
+  }).select().single();
+  if (error) { showLoading(false); showErr(error.message||'Registration failed. Try again.'); return; }
+  await reloadUsers();
+  showLoading(false);
   _pendingCohortId = null; _pendingCohortToken = null;
   document.getElementById('login-email').value = email;
   document.getElementById('login-password').value = pw;
   showToast('Account created! Signing you in… ✓');
-  doLogin();
+  await doLogin();
 }
 function checkInviteLink() {
-  const params = new URLSearchParams(window.location.search);
+  const params   = new URLSearchParams(window.location.search);
   const cohortId = parseInt(params.get('cohort'));
   const token    = params.get('token');
   if (!cohortId || !token) { showPage('page-login'); return; }
@@ -1274,17 +1298,19 @@ function checkInviteLink() {
   if (el) el.textContent = cohort.name;
   showPage('page-register');
 }
-function switchCohort(cohortId) {
+async function switchCohort(cohortId) {
   currentCohortId = cohortId;
   const cohort = COHORTS.find(c=>c.id===cohortId);
   currentCohortArchived = cohort ? !!cohort.archived : false;
-  loadCohortData(cohortId);
+  showLoading(true, 'Loading cohort…');
+  await loadCohortData(cohortId);
+  showLoading(false);
   MOCK_USERS = USERS;
-  populateCoachSelects();
-  renderCaptainsLog();
-  renderCohortList();
-  updateNavCohortDisplay();
-  showToast('Switched to '+( cohort?cohort.name:'cohort'));
+  populateCoachSelects(); renderCaptainsLog(); renderCohortList(); updateNavCohortDisplay();
+  // Update nav switcher selection
+  const sw = document.getElementById('nav-cohort-switcher');
+  if (sw) sw.value = cohortId;
+  showToast('Switched to '+(cohort?cohort.name:'cohort'));
 }
 function updateNavCohortDisplay() {
   const cohort = COHORTS.find(c=>c.id===currentCohortId);
@@ -1482,6 +1508,7 @@ function renderCaptainsLog() {
   document.getElementById('ft-ren').textContent = totals.ren;
 }
 
+const _logSaveTimers = {};
 function updateLog(userId, field, value, key) {
   if (!currentUser) return;
   if (!currentUser.isAdmin && currentUser.id !== userId) return;
@@ -1495,9 +1522,17 @@ function updateLog(userId, field, value, key) {
   }
   if (['conv','ref','ren'].includes(field)) row[field]=parseInt(value)||0;
   else row[field]=Math.round(parseFloat(value)*100)||0;
-  saveData();
   renderCaptainsLog();
-  showToast('Saved ✓');
+  // Debounced Supabase upsert
+  const tKey = userId+'-'+key;
+  clearTimeout(_logSaveTimers[tKey]);
+  _logSaveTimers[tKey] = setTimeout(async()=>{
+    await sb.from('log_data').upsert({
+      cohort_id:currentCohortId, period_key:key, user_id:userId, user_name:row.name,
+      conv:row.conv, proposals:row.proposals, sales:row.sales, income:row.income, ref:row.ref, ren:row.ren
+    },{onConflict:'cohort_id,period_key,user_id'});
+    showToast('Saved ✓');
+  }, 800);
 }
 
 // ===== DASHBOARD =====
@@ -1763,7 +1798,7 @@ function renderSalesBoard() {
 }
 
 // ===== DAILY LOG =====
-function saveDailyLog() {
+async function saveDailyLog() {
   if(!currentUser) return;
   if(currentCohortArchived) { showToast('This cohort is archived — no edits allowed'); return; }
   const date = document.getElementById('daily-date').value;
@@ -1776,21 +1811,24 @@ function saveDailyLog() {
   const ren = parseInt(document.getElementById('daily-ren').value)||0;
   if(!conv && !proposals && !sales && !income && !ref && !ren){ showToast('Nothing to save — fill in at least one field'); return; }
 
-  // Save to personal daily log history
-  appendUserDailyLog(currentUser.id, {date,conv,proposals,sales,income,ref,ren});
+  showLoading(true, 'Saving…');
+  await appendUserDailyLog(currentUser.id, {date,conv,proposals,sales,income,ref,ren});
 
-  // Accumulate into captain's log for the right period/month
   const d = new Date(date);
   const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const mName = mNames[d.getMonth()];
-  const mo = d.getMonth(); // 0-indexed
-  const isSchool = mo>=8 || mo<=1; // Sep(8)-Feb(1)
+  const mo = d.getMonth();
+  const isSchool = mo>=8 || mo<=1;
   const key = (isSchool?'school':'preschool')+'-'+mName;
   if(!LOG_DATA[key]) LOG_DATA[key] = emptyRows();
   let row = LOG_DATA[key].find(r=>r.userId===currentUser.id);
   if(!row){ row={userId:currentUser.id,name:currentUser.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}; LOG_DATA[key].push(row); }
   row.conv+=conv; row.proposals+=proposals; row.sales+=sales; row.income+=income; row.ref+=ref; row.ren+=ren;
-  saveData();
+  await sb.from('log_data').upsert({
+    cohort_id:currentCohortId, period_key:key, user_id:currentUser.id, user_name:currentUser.name,
+    conv:row.conv, proposals:row.proposals, sales:row.sales, income:row.income, ref:row.ref, ren:row.ren
+  },{onConflict:'cohort_id,period_key,user_id'});
+  showLoading(false);
 
   // Clear fields
   ['daily-conv','daily-proposals','daily-sales','daily-income','daily-ref','daily-ren'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
@@ -1798,9 +1836,9 @@ function saveDailyLog() {
   showToast('Entry saved — great work today! 🌟');
 }
 
-function renderDailyLogs() {
+async function renderDailyLogs() {
   if(!currentUser) return;
-  const logs = getUserDailyLogs(currentUser.id);
+  const logs = await getUserDailyLogs(currentUser.id);
   const tbody = document.getElementById('daily-log-recent-body');
   if(!tbody) return;
   if(!logs.length){
@@ -1824,8 +1862,8 @@ function formatLogDate(str) {
 }
 
 // ===== PROFILE =====
-function loadProfileVersion(ver) {
-  const data = currentUser ? getUserProfile(currentUser.id, ver) : {};
+async function loadProfileVersion(ver) {
+  const data = currentUser ? await getUserProfile(currentUser.id, ver) : {};
   const isCurrent = ver === 'current';
 
   const banner = document.getElementById('past-version-banner');
@@ -1866,7 +1904,7 @@ function loadProfileVersion(ver) {
   setField('pf-questions', data.questions, !isCurrent);
 }
 
-function saveProfile() {
+async function saveProfile() {
   if(!currentUser) return;
   if(currentCohortArchived) { showToast('This cohort is archived — profile changes are read-only'); return; }
   const gv = id => document.getElementById(id)?.value || '';
@@ -1876,27 +1914,27 @@ function saveProfile() {
     pricing: gv('pf-pricing'), sources: gv('pf-sources'), insights: gv('pf-insights'),
     goals: gv('pf-goals'), questions: gv('pf-questions'),
   };
-  saveUserProfile(currentUser.id, 'current', data);
+  showLoading(true, 'Saving profile…');
+  await saveUserProfile(currentUser.id, 'current', data);
+  showLoading(false);
   showToast('Profile saved ✨');
 }
 
 // ===== ADMIN =====
-function createCohort() {
+async function createCohort() {
   const name = document.getElementById('admin-cohort-name').value.trim();
   const year = document.getElementById('admin-cohort-year').value;
   if (!name) { showToast('Please enter a cohort name first'); return; }
-  const saved = localStorage.getItem('ajc_nextCohortId');
-  if (saved) _nextCohortId = parseInt(saved)||1;
   const token = Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)+Date.now().toString(36);
-  const cohort = { id:_nextCohortId++, name:name+' '+year, token, archived:false, created:new Date().toISOString() };
-  localStorage.setItem('ajc_nextCohortId', String(_nextCohortId));
-  COHORTS.push(cohort);
-  localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
-  // Auto-switch admin to new cohort if none selected
-  if (currentCohortId == null) switchCohort(cohort.id);
+  showLoading(true, 'Creating cohort…');
+  const { data, error } = await sb.from('cohorts').insert({name:name+' '+year, token, archived:false}).select().single();
+  if (error) { showLoading(false); showToast('Failed to create cohort: '+error.message); return; }
+  await reloadCohorts();
+  showLoading(false);
   document.getElementById('admin-cohort-name').value = '';
+  if (currentCohortId == null) await switchCohort(data.id);
   renderCohortList();
-  copyInviteLinkById(cohort.id);
+  copyInviteLinkById(data.id);
 }
 function copyInviteLinkById(cohortId) {
   const cohort = COHORTS.find(c=>c.id===cohortId);
@@ -1938,37 +1976,28 @@ function renderCohortList() {
     </div>`;
   }).join('');
 }
-function archiveCohort(id) {
+async function archiveCohort(id) {
   const c = COHORTS.find(c=>c.id===id);
   if (!c) return;
   c.archived = !c.archived;
-  localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
-  if (currentCohortId === id) {
-    currentCohortArchived = c.archived;
-    updateNavCohortDisplay();
-    renderCaptainsLog();
-  }
+  await sb.from('cohorts').update({archived:c.archived}).eq('id',id);
+  if (currentCohortId === id) { currentCohortArchived = c.archived; updateNavCohortDisplay(); renderCaptainsLog(); }
   renderCohortList();
   showToast(c.archived ? 'Cohort archived — coaches can view but not edit' : 'Cohort unarchived ✓');
 }
-function deleteCohort(id) {
-  if (!confirm('Delete this cohort and remove all its coaches? This cannot be undone.')) return;
-  COHORTS = COHORTS.filter(c=>c.id!==id);
-  USERS   = USERS.filter(u=>u.isAdmin || u.cohortId!==id);
-  MOCK_USERS = USERS;
-  localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
-  localStorage.setItem('ajc_users',   JSON.stringify(USERS));
-  try { localStorage.removeItem('ajc_logData_'+id); } catch(e){}
+async function deleteCohort(id) {
+  if (!confirm('Delete this cohort and all its coaches + data? Cannot be undone.')) return;
+  showLoading(true, 'Deleting…');
+  await sb.from('cohorts').delete().eq('id',id);
+  await Promise.all([reloadCohorts(), reloadUsers()]);
   if (currentCohortId === id) {
     const first = COHORTS[0];
     currentCohortId = first ? first.id : null;
-    currentCohortArchived = false;
-    LOG_DATA = {};
-    if (currentCohortId != null) loadCohortData(currentCohortId);
-    updateNavCohortDisplay();
-    populateCoachSelects();
-    renderCaptainsLog();
+    currentCohortArchived = false; LOG_DATA = {};
+    if (currentCohortId != null) await loadCohortData(currentCohortId);
+    updateNavCohortDisplay(); populateCoachSelects(); renderCaptainsLog();
   }
+  showLoading(false);
   renderCohortList();
   showToast('Cohort deleted');
 }
@@ -1987,33 +2016,29 @@ function exportCSV() {
 }
 
 // ===== MENTORING GROUPS =====
-function createMentoringGroup() {
+async function createMentoringGroup() {
   const mentorId = parseInt(document.getElementById('admin-mentor-select').value);
   if (!mentorId) { showToast('Please select a mentor first'); return; }
   const mentor = USERS.find(u=>u.id===mentorId);
   if (!mentor) return;
-
   const checked = [...document.querySelectorAll('.member-checkbox:checked')].map(c=>parseInt(c.value));
   if (!checked.includes(mentorId)) checked.push(mentorId);
   if (checked.length < 2) { showToast('Please select at least one other member'); return; }
-
+  showLoading(true, 'Saving group…');
   if (editingGroupId !== null) {
-    // Update existing group
-    const group = MENTORING_GROUPS.find(g=>g.id===editingGroupId);
-    if(group){ group.mentorId=mentorId; group.name=`${mentor.name}'s Mentoring Group`; group.memberIds=checked; }
+    await sb.from('mentoring_groups').update({mentor_id:mentorId, name:`${mentor.name}'s Mentoring Group`, member_ids:checked}).eq('id',editingGroupId);
     editingGroupId = null;
     const btn = document.getElementById('create-group-btn');
     if(btn) btn.textContent = 'Create Group';
     showToast('Group updated ✓');
   } else {
-    const group = { id:nextGroupId++, mentorId, name:`${mentor.name}'s Mentoring Group`, memberIds:checked };
-    MENTORING_GROUPS.push(group);
-    showToast(`${group.name} created! ✓`);
+    await sb.from('mentoring_groups').insert({cohort_id:currentCohortId, mentor_id:mentorId, name:`${mentor.name}'s Mentoring Group`, member_ids:checked});
+    showToast(`${mentor.name}'s Mentoring Group created! ✓`);
   }
-
+  await reloadGroups();
+  showLoading(false);
   document.getElementById('admin-mentor-select').value = '';
   document.querySelectorAll('.member-checkbox').forEach(c=>c.checked=false);
-  saveData();
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
 }
@@ -2031,11 +2056,11 @@ function editMentoringGroup(id) {
   showToast('Edit the group above and click Save Changes');
 }
 
-function deleteMentoringGroup(id) {
+async function deleteMentoringGroup(id) {
+  await sb.from('mentoring_groups').delete().eq('id',id);
   MENTORING_GROUPS = MENTORING_GROUPS.filter(g=>g.id!==id);
   if (currentGroupFilter===id) { currentGroupFilter=null; renderCaptainsLog(); }
   if(editingGroupId===id){ editingGroupId=null; const btn=document.getElementById('create-group-btn'); if(btn) btn.textContent='Create Group'; }
-  saveData();
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
   showToast('Group removed');
@@ -2231,8 +2256,10 @@ document.addEventListener('click', (e) => {
 });
 
 // ===== INIT =====
-document.addEventListener('DOMContentLoaded', ()=>{
-  loadData();
+document.addEventListener('DOMContentLoaded', async ()=>{
+  showLoading(true, 'Starting up…');
+  await loadData();
+  showLoading(false);
   const params = new URLSearchParams(window.location.search);
   if (params.get('cohort') && params.get('token')) {
     checkInviteLink();
