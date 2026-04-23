@@ -62,6 +62,12 @@
   .col-tooltip-text { font-size: 13px; color: #374151; line-height: 1.7; white-space: pre-line; }
   .col-tooltip-close { position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 18px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px; }
   .col-tooltip-close:hover { color: #475569; }
+  /* Currency wrapper in captain's log */
+  .curr-wrap { position:relative; display:flex; align-items:center; }
+  .curr-pfx { position:absolute; left:7px; font-size:11px; color:#94a3b8; pointer-events:none; user-select:none; z-index:1; }
+  .curr-wrap .editable-input { padding-left:16px !important; }
+  /* Account settings card */
+  .account-settings-card { background:white; border-radius:14px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.08); margin-top:20px; }
   /* ===== MOBILE RESPONSIVE ===== */
   @media (max-width: 640px) {
     /* Tab padding */
@@ -107,9 +113,21 @@
     /* FAQ modal */
     #faq-inner { padding: 24px 18px !important; }
 
-    /* Period pills wrap nicely already, but tighten font */
-    .period-pill { font-size: 11px; padding: 5px 10px; }
-    .month-pill { padding: 3px 10px; font-size: 11px; }
+    /* Period pills */
+    .period-pill { font-size: 12px; padding: 8px 12px; }
+    .month-pill { padding: 5px 11px; font-size: 12px; }
+    /* Group filter full-width on mobile */
+    .period-group-row { margin-left: 0 !important; width: 100%; }
+    #group-filter-select { width: 100% !important; min-width: 0 !important; }
+    /* Bigger table text */
+    td { font-size: 13px; }
+    td input.editable-input { font-size: 13px; }
+    th { font-size: 11px; }
+    /* Month pills bigger gap */
+    #month-pills-school, #month-pills-preschool { gap: 6px !important; }
+    /* Captain's log header stack */
+    #tab-captains-log .mb-5.flex { flex-direction: column !important; gap: 10px; }
+    #tab-captains-log .mb-5.flex button { align-self: flex-start; }
   }
 
   /* Tablet — rankings 2-col */
@@ -297,7 +315,7 @@
         <button id="btn-school" onclick="setPeriod('school')" class="period-pill text-white border-transparent" style="background:#020e1d">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>School Year <span class="font-normal" style="color:#92a6b3">Sep · Oct · Nov · Dec · Jan · Feb</span>
         </button>
-        <div class="ml-auto flex items-center gap-2">
+        <div class="period-group-row ml-auto flex items-center gap-2">
           <span class="text-xs text-gray-400 font-medium">Group:</span>
           <select id="group-filter-select" onchange="setGroupFilter(this.value)" class="coach-select border border-gray-200 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none min-w-44 cursor-pointer" style="transition:border-color .15s" onfocus="this.style.borderColor='#bea566'" onblur="this.style.borderColor='#e5e7eb'">
             <option value="">All Coaches</option>
@@ -306,22 +324,22 @@
       </div>
       <div id="month-pills-school" class="flex gap-2 flex-wrap">
         <span class="text-xs font-medium mr-1 self-center" style="color:#637480">Month:</span>
-        <button class="month-pill school-pill-off" onclick="setMonth('Sep',this,'school')">Sep</button>
-        <button class="month-pill school-pill-off" onclick="setMonth('Oct',this,'school')">Oct</button>
-        <button class="month-pill school-pill-off" onclick="setMonth('Nov',this,'school')">Nov</button>
-        <button class="month-pill school-pill-off" onclick="setMonth('Dec',this,'school')">Dec</button>
-        <button class="month-pill school-pill-on" id="default-school-pill" onclick="setMonth('Jan',this,'school')">Jan ✓</button>
-        <button class="month-pill school-pill-off" onclick="setMonth('Feb',this,'school')">Feb</button>
+        <button class="month-pill school-pill-off" data-month="Sep" onclick="setMonth('Sep',this,'school')">Sep</button>
+        <button class="month-pill school-pill-off" data-month="Oct" onclick="setMonth('Oct',this,'school')">Oct</button>
+        <button class="month-pill school-pill-off" data-month="Nov" onclick="setMonth('Nov',this,'school')">Nov</button>
+        <button class="month-pill school-pill-off" data-month="Dec" onclick="setMonth('Dec',this,'school')">Dec</button>
+        <button class="month-pill school-pill-on" data-month="Jan" onclick="setMonth('Jan',this,'school')">Jan ✓</button>
+        <button class="month-pill school-pill-off" data-month="Feb" onclick="setMonth('Feb',this,'school')">Feb</button>
       </div>
       <div id="month-pills-preschool" class="flex gap-2 flex-wrap hidden">
         <span class="text-xs font-medium mr-1 self-center text-amber-500">Month:</span>
-        <button class="month-pill preschool-pill-off" onclick="setMonth('Mar',this,'preschool')">Mar</button>
-        <button class="month-pill preschool-pill-off" onclick="setMonth('Apr',this,'preschool')">Apr</button>
-        <button class="month-pill preschool-pill-off" onclick="setMonth('May',this,'preschool')">May</button>
-        <button class="month-pill preschool-pill-off" onclick="setMonth('Jun',this,'preschool')">Jun</button>
-        <button class="month-pill preschool-pill-off" onclick="setMonth('Jul',this,'preschool')">Jul</button>
-        <button class="month-pill preschool-pill-on" id="default-preschool-pill" onclick="setMonth('Aug',this,'preschool')">Aug</button>
-        <button class="month-pill" style="background:#faf5e8;color:#7a6636;border:1px solid #e8ddc4;font-weight:700" onclick="setMonth('Total',this,'preschool')">Total ∑</button>
+        <button class="month-pill preschool-pill-off" data-month="Mar" onclick="setMonth('Mar',this,'preschool')">Mar</button>
+        <button class="month-pill preschool-pill-off" data-month="Apr" onclick="setMonth('Apr',this,'preschool')">Apr</button>
+        <button class="month-pill preschool-pill-off" data-month="May" onclick="setMonth('May',this,'preschool')">May</button>
+        <button class="month-pill preschool-pill-off" data-month="Jun" onclick="setMonth('Jun',this,'preschool')">Jun</button>
+        <button class="month-pill preschool-pill-off" data-month="Jul" onclick="setMonth('Jul',this,'preschool')">Jul</button>
+        <button class="month-pill preschool-pill-off" data-month="Aug" onclick="setMonth('Aug',this,'preschool')">Aug</button>
+        <button class="month-pill" data-month="Total" style="background:#faf5e8;color:#7a6636;border:1px solid #e8ddc4;font-weight:700" onclick="setMonth('Total',this,'preschool')">Total ∑</button>
       </div>
     </div>
 
@@ -730,6 +748,29 @@
         </div>
 
       </div>
+
+      <!-- Account Settings -->
+      <div class="account-settings-card">
+        <div class="text-sm font-semibold text-gray-700 mb-1">Account Settings</div>
+        <p class="text-xs text-gray-400 mb-4">Update your display name or change your password.</p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input type="text" id="acc-name" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" placeholder="Your full name">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <input type="password" id="acc-password" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" placeholder="Leave blank to keep current password">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <input type="password" id="acc-confirm" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" placeholder="Re-enter new password">
+          </div>
+          <div id="acc-error" class="text-red-500 text-sm hidden"></div>
+          <button onclick="saveAccountSettings()" class="brand-btn px-4 py-2.5 rounded-xl text-sm font-medium transition">Save Account Settings</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1076,18 +1117,31 @@ let RANKS = {};
 let _nextCohortId = 1;
 let _pendingCohortId = null;
 let _pendingCohortToken = null;
+let USER_COHORTS = []; // junction table rows: {id, user_id, cohort_id}
 
 // ===== DATA LAYER (Supabase) =====
 async function loadData() {
-  const [cohortsRes, usersRes, groupsRes] = await Promise.all([
+  const [cohortsRes, usersRes, groupsRes, ucRes] = await Promise.all([
     sb.from('cohorts').select('*').order('created_at'),
     sb.from('users').select('*').order('id'),
-    sb.from('mentoring_groups').select('*').order('id')
+    sb.from('mentoring_groups').select('*').order('id'),
+    sb.from('user_cohorts').select('*').then(r=>r).catch(()=>({data:[]}))
   ]);
   COHORTS = (cohortsRes.data||[]).map(mapCohort);
   USERS   = (usersRes.data||[]).map(mapUser);
   MOCK_USERS = USERS;
   MENTORING_GROUPS = (groupsRes.data||[]).map(mapGroup);
+  USER_COHORTS = (ucRes.data||[]);
+}
+async function reloadUserCohorts() {
+  try { const{data}=await sb.from('user_cohorts').select('*'); USER_COHORTS=data||[]; } catch(e){ USER_COHORTS=[]; }
+}
+function getUserCohortIds(userId) {
+  const u = USERS.find(u=>u.id===userId);
+  const primary = u?.cohortId;
+  const extras = USER_COHORTS.filter(uc=>uc.user_id===userId).map(uc=>uc.cohort_id);
+  const all = new Set([...(primary!=null?[primary]:[]), ...extras]);
+  return [...all];
 }
 async function loadCohortData(cohortId) {
   const { data } = await sb.from('log_data').select('*').eq('cohort_id', cohortId);
@@ -1175,10 +1229,19 @@ function renderCohortStats() {
   if(cohPreSales > 0 && cohSales > 0) {
     const pct = Math.round((cohSales-cohPreSales)/cohPreSales*100);
     if(gEl) gEl.textContent = (pct>=0?'+':'')+pct+'%';
-    if(mEl) { mEl.textContent = `🎉 Cohort sales grew ${pct>=0?'+':''}${pct}% from pre-school to the school year!`; mEl.className='text-center text-sm font-semibold text-green-600 mt-3'; }
+    if(mEl) {
+      if(pct >= 0) {
+        mEl.textContent = `🎉 Cohort sales grew +${pct}% from pre-school to the school year!`;
+        mEl.className='text-center text-sm font-semibold text-green-600 mt-3';
+        mEl.style.display='';
+      } else {
+        mEl.textContent = '';
+        mEl.style.display='none';
+      }
+    }
   } else {
     if(gEl) gEl.textContent = '—';
-    if(mEl) { mEl.textContent = 'Add pre-school and school-year data to see growth.'; mEl.className='text-center text-sm text-gray-400 mt-3'; }
+    if(mEl) { mEl.textContent = 'Add pre-school and school-year data to see growth.'; mEl.className='text-center text-sm text-gray-400 mt-3'; mEl.style.display=''; }
   }
 }
 
@@ -1210,15 +1273,16 @@ function fillLogin(email, pw) {
   document.getElementById('login-password').value = pw || 'password';
   doLogin();
 }
-async function doLogin() {
+async function doLogin(skipReload) {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pw    = document.getElementById('login-password').value.trim();
-  // Re-fetch users from Supabase so any browser can log in
   showLoading(true, 'Signing in…');
-  await reloadUsers();
+  if (!skipReload) { await reloadUsers(); await reloadUserCohorts(); }
   showLoading(false);
   const user = USERS.find(u=>u.email===email && u.password===pw);
   if (!user) { document.getElementById('login-error').classList.remove('hidden'); return; }
+  // Save session for persistent login
+  try { localStorage.setItem('ajc_session', JSON.stringify({userId:user.id, email:user.email, pw:user.password})); } catch(e){}
   currentUser = user;
   document.getElementById('login-error').classList.add('hidden');
   document.getElementById('nav-user-name').textContent = user.name;
@@ -1230,7 +1294,9 @@ async function doLogin() {
     currentCohortId = first ? first.id : null;
     currentCohortArchived = false;
   } else {
-    currentCohortId = user.cohortId;
+    // Pick first available cohort for this user
+    const cohortIds = getUserCohortIds(user.id);
+    currentCohortId = cohortIds[0] ?? null;
     const cohort = COHORTS.find(c=>c.id===currentCohortId);
     currentCohortArchived = cohort ? !!cohort.archived : false;
   }
@@ -1243,6 +1309,7 @@ async function doLogin() {
   showPage('page-app');
   updateNavCohortDisplay();
   populateCoachSelects();
+  initSmartPeriod();
   switchTab('captains-log');
   if (!user.isAdmin) {
     const myGroup = MENTORING_GROUPS.find(g=>g.mentorId===user.id);
@@ -1256,6 +1323,7 @@ async function doLogin() {
   renderCaptainsLog();
 }
 function doLogout() {
+  try { localStorage.removeItem('ajc_session'); } catch(e){}
   currentUser = null; currentCohortId = null; currentCohortArchived = false;
   currentGroupFilter = null; LOG_DATA = {};
   showPage('page-login');
@@ -1269,15 +1337,29 @@ async function doRegister() {
   const showErr   = msg => { if(errEl){errEl.textContent=msg;errEl.classList.remove('hidden');} };
   if (!firstName||!lastName||!email||!pw) { showErr('Please fill in all fields.'); return; }
   if (!_pendingCohortId) { showErr('No cohort linked — please use your invite link.'); return; }
-  // Check email not already used
-  showLoading(true, 'Creating account…');
-  const { data:existing } = await sb.from('users').select('id').eq('email',email).maybeSingle();
-  if (existing) { showLoading(false); showErr('This email is already registered — please sign in.'); return; }
+  // Check email — if exists, add to this cohort instead of error
+  showLoading(true, 'Joining cohort…');
+  const { data:existing } = await sb.from('users').select('id,password').eq('email',email).maybeSingle();
+  if (existing) {
+    if (existing.password !== pw) { showLoading(false); showErr('That email is already registered — sign in with your existing password, or use the password you set when you first joined.'); return; }
+    // Add to new cohort via junction table
+    await sb.from('user_cohorts').upsert({user_id:existing.id, cohort_id:_pendingCohortId},{onConflict:'user_id,cohort_id'});
+    await reloadUsers(); await reloadUserCohorts();
+    showLoading(false);
+    _pendingCohortId = null; _pendingCohortToken = null;
+    document.getElementById('login-email').value = email;
+    document.getElementById('login-password').value = pw;
+    showToast('Added to new cohort! Signing you in… ✓');
+    await doLogin();
+    return;
+  }
   const { data:newRow, error } = await sb.from('users').insert({
     email, name:firstName+' '+lastName, password:pw, is_admin:false, cohort_id:_pendingCohortId
   }).select().single();
   if (error) { showLoading(false); showErr(error.message||'Registration failed. Try again.'); return; }
-  await reloadUsers();
+  // Also add to user_cohorts junction table
+  await sb.from('user_cohorts').upsert({user_id:newRow.id, cohort_id:_pendingCohortId},{onConflict:'user_id,cohort_id'}).catch(()=>{});
+  await reloadUsers(); await reloadUserCohorts();
   showLoading(false);
   _pendingCohortId = null; _pendingCohortToken = null;
   document.getElementById('login-email').value = email;
@@ -1321,13 +1403,22 @@ function updateNavCohortDisplay() {
     if (!isAdmin && cohort) { badge.textContent = cohort.name+(cohort.archived?' [Archived]':''); badge.classList.remove('hidden'); }
     else badge.classList.add('hidden');
   }
-  // Switcher dropdown (admin only, when multiple cohorts)
+  // Switcher dropdown — admin: all cohorts; non-admin: only their cohorts (if >1)
   const switcher = document.getElementById('nav-cohort-switcher');
   if (switcher) {
     if (isAdmin && COHORTS.length > 0) {
       switcher.classList.remove('hidden');
       switcher.innerHTML = COHORTS.map(c=>`<option value="${c.id}"${c.id===currentCohortId?' selected':''}>${c.name}${c.archived?' ⚑':''}</option>`).join('');
-    } else switcher.classList.add('hidden');
+    } else if (!isAdmin && currentUser) {
+      const userCohortIds = getUserCohortIds(currentUser.id);
+      if (userCohortIds.length > 1) {
+        switcher.classList.remove('hidden');
+        switcher.innerHTML = userCohortIds.map(id=>{
+          const c = COHORTS.find(c=>c.id===id);
+          return c ? `<option value="${c.id}"${c.id===currentCohortId?' selected':''}>${c.name}${c.archived?' ⚑':''}</option>` : '';
+        }).filter(Boolean).join('');
+      } else { switcher.classList.add('hidden'); }
+    } else { switcher.classList.add('hidden'); }
   }
   // Archived banner
   const archWarn = document.getElementById('archived-warn-banner');
@@ -1379,12 +1470,36 @@ function setGroupFilter(val) {
   renderCaptainsLog();
 }
 
+// Smart period/month init based on real-world date
+function initSmartPeriod() {
+  const m = new Date().getMonth(); // 0=Jan..11=Dec
+  const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mName = mNames[m];
+  const isSchool = (m >= 8 || m <= 1); // Sep-Feb = school; Mar-Aug = preschool
+  const period = isSchool ? 'school' : 'preschool';
+  currentPeriod = period;
+  currentMonth = mName;
+  _applyPeriodUI(period);
+  resetPills(period, mName);
+  updateBanner();
+  // No renderCaptainsLog here — called by doLogin after
+}
+
 function setPeriod(type) {
   currentPeriod = type;
   const isSchool = type==='school';
+  // When user manually switches, default to first month of that period
+  currentMonth = isSchool ? 'Sep' : 'Mar';
+  _applyPeriodUI(type);
+  resetPills(isSchool ? 'school' : 'preschool', currentMonth);
+  updateBanner();
+  renderCaptainsLog();
+}
+
+function _applyPeriodUI(type) {
+  const isSchool = type==='school';
   document.getElementById('month-pills-school').classList.toggle('hidden', !isSchool);
   document.getElementById('month-pills-preschool').classList.toggle('hidden', isSchool);
-
   const btnSchool = document.getElementById('btn-school');
   const btnPre = document.getElementById('btn-preschool');
   if (isSchool) {
@@ -1398,58 +1513,54 @@ function setPeriod(type) {
     btnPre.className='period-pill';
     btnSchool.className='period-pill bg-gray-100 text-gray-600 border-gray-200';
   }
-
-  currentMonth = isSchool ? 'Jan' : 'Aug';
-  // Reset pills
-  resetPills(isSchool ? 'school' : 'preschool');
-  updateBanner();
-  renderCaptainsLog();
 }
 
-function resetPills(period) {
+function resetPills(period, activeMonth) {
   const isSchool = period==='school';
-  const container = isSchool ? '#month-pills-school .month-pill' : '#month-pills-preschool .month-pill';
-  document.querySelectorAll(container).forEach(p=>{
-    p.textContent = p.textContent.replace(' ✓','');
-    if (isSchool) {
-      p.className = 'month-pill school-pill-off';
+  const container = isSchool ? '#month-pills-school' : '#month-pills-preschool';
+  document.querySelectorAll(container + ' .month-pill').forEach(p=>{
+    const dm = p.dataset.month;
+    if (!dm) return;
+    if (dm === 'Total') {
+      // restore Total pill default style
+      p.style.background='#faf5e8'; p.style.color='#7a6636'; p.style.border='1px solid #e8ddc4'; p.style.fontWeight='700';
+      p.textContent = 'Total ∑';
+      return;
     }
-    // preschool pills: don't reset Total pill styling
+    p.textContent = dm; // reset checkmark
+    if (dm === activeMonth) {
+      p.style = '';
+      p.className = isSchool ? 'month-pill school-pill-on' : 'month-pill preschool-pill-on';
+      p.textContent = dm + ' ✓';
+    } else {
+      p.style = '';
+      p.className = isSchool ? 'month-pill school-pill-off' : 'month-pill preschool-pill-off';
+    }
   });
-  if (isSchool) {
-    document.getElementById('default-school-pill').className='month-pill school-pill-on';
-    document.getElementById('default-school-pill').textContent='Jan ✓';
-  } else {
-    document.getElementById('default-preschool-pill').className='month-pill preschool-pill-on';
-    document.getElementById('default-preschool-pill').textContent='Aug ✓';
-  }
 }
 
 function setMonth(month, btn, period) {
   currentMonth = month;
   const isSchool = period==='school';
-  const container = isSchool ? '#month-pills-school .month-pill' : '#month-pills-preschool .month-pill';
-  document.querySelectorAll(container).forEach(p=>{
-    p.textContent = p.textContent.replace(' ✓','');
-    if (isSchool) {
-      p.className = (p===btn) ? 'month-pill school-pill-on' : 'month-pill school-pill-off';
-    } else {
-      // preserve Total pill special style
-      if (p===btn) {
-        if (month==='Total') {
-          p.style.background='#faf5e8'; p.style.color='#7a6636'; p.style.border='1px solid #bea566'; p.style.fontWeight='700';
-        } else {
-          p.className='month-pill preschool-pill-on'; p.style='';
-        }
-      } else {
-        if (p.textContent.includes('Total')) {
-          p.style.background='#faf5e8'; p.style.color='#7a6636'; p.style.border='1px solid #e8ddc4'; p.style.fontWeight='700';
-        } else {
-          p.className='month-pill preschool-pill-off'; p.style='';
-        }
-      }
+  const container = isSchool ? '#month-pills-school' : '#month-pills-preschool';
+  document.querySelectorAll(container + ' .month-pill').forEach(p=>{
+    const dm = p.dataset.month;
+    if (!dm) return;
+    if (dm === 'Total') {
+      const isActive = (p === btn);
+      p.style.background = '#faf5e8'; p.style.color = '#7a6636';
+      p.style.border = isActive ? '1px solid #bea566' : '1px solid #e8ddc4'; p.style.fontWeight = '700';
+      p.textContent = isActive ? 'Total ✓' : 'Total ∑';
+      return;
     }
-    if (p===btn) p.textContent = month + ' ✓';
+    p.style = '';
+    if (p === btn) {
+      p.className = isSchool ? 'month-pill school-pill-on' : 'month-pill preschool-pill-on';
+      p.textContent = dm + ' ✓';
+    } else {
+      p.className = isSchool ? 'month-pill school-pill-off' : 'month-pill preschool-pill-off';
+      p.textContent = dm;
+    }
   });
   updateBanner();
   renderCaptainsLog();
@@ -1489,12 +1600,12 @@ function renderCaptainsLog() {
         ${isOwn ? '<span class="ml-2 text-xs px-1.5 py-0.5 rounded font-medium" style="background:#faf5e8;color:#7a6636">You</span>' : ''}
         ${isAdmin && !isOwn ? '<span class="ml-1 text-xs px-1.5 py-0.5 rounded font-medium" style="background:#eff6ff;color:#1d4ed8">Edit</span>' : ''}
       </td>
-      <td><input type="number" min="0" value="${row.conv}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'conv',this.value,'${key}')"></td>
-      <td><input type="text" value="${(row.proposals/100).toFixed(2)}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'proposals',this.value,'${key}')"></td>
-      <td><input type="text" value="${(row.sales/100).toFixed(2)}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'sales',this.value,'${key}')"></td>
-      <td><input type="text" value="${(row.income/100).toFixed(2)}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'income',this.value,'${key}')"></td>
-      <td><input type="number" min="0" value="${row.ref}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'ref',this.value,'${key}')"></td>
-      <td><input type="number" min="0" value="${row.ren}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'ren',this.value,'${key}')"></td>
+      <td><input type="number" min="0" value="${row.conv||''}" placeholder="0" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'conv',this.value,'${key}')"></td>
+      <td><div class="curr-wrap"><span class="curr-pfx">£</span><input type="text" value="${row.proposals?((row.proposals/100).toFixed(2)):''}" placeholder="0.00" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'proposals',this.value,'${key}')"></div></td>
+      <td><div class="curr-wrap"><span class="curr-pfx">£</span><input type="text" value="${row.sales?((row.sales/100).toFixed(2)):''}" placeholder="0.00" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'sales',this.value,'${key}')"></div></td>
+      <td><div class="curr-wrap"><span class="curr-pfx">£</span><input type="text" value="${row.income?((row.income/100).toFixed(2)):''}" placeholder="0.00" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'income',this.value,'${key}')"></div></td>
+      <td><input type="number" min="0" value="${row.ref||''}" placeholder="0" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'ref',this.value,'${key}')"></td>
+      <td><input type="number" min="0" value="${row.ren||''}" placeholder="0" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'ren',this.value,'${key}')"></td>
     `;
     tbody.appendChild(tr);
     totals.conv+=row.conv; totals.proposals+=row.proposals; totals.sales+=row.sales;
@@ -1902,6 +2013,9 @@ async function loadProfileVersion(ver) {
   setField('pf-insights', data.insights, !isCurrent);
   setField('pf-goals', data.goals, !isCurrent);
   setField('pf-questions', data.questions, !isCurrent);
+  // Populate account settings name field
+  const accName = document.getElementById('acc-name');
+  if(accName && currentUser) accName.value = currentUser.name;
 }
 
 async function saveProfile() {
@@ -1918,6 +2032,32 @@ async function saveProfile() {
   await saveUserProfile(currentUser.id, 'current', data);
   showLoading(false);
   showToast('Profile saved ✨');
+}
+
+async function saveAccountSettings() {
+  if(!currentUser) return;
+  const name    = (document.getElementById('acc-name')?.value||'').trim();
+  const pw      = (document.getElementById('acc-password')?.value||'').trim();
+  const confirm = (document.getElementById('acc-confirm')?.value||'').trim();
+  const errEl   = document.getElementById('acc-error');
+  const showErr = msg => { if(errEl){errEl.textContent=msg;errEl.classList.remove('hidden');} };
+  if(!name) { showErr('Name cannot be empty.'); return; }
+  if(pw && pw !== confirm) { showErr("Passwords don't match."); return; }
+  if(errEl) errEl.classList.add('hidden');
+  const update = { name };
+  if(pw) update.password = pw;
+  showLoading(true,'Saving…');
+  const { error } = await sb.from('users').update(update).eq('id', currentUser.id);
+  showLoading(false);
+  if(error){ showErr(error.message||'Save failed.'); return; }
+  currentUser.name = name;
+  if(pw) currentUser.password = pw;
+  const u = USERS.find(u=>u.id===currentUser.id);
+  if(u){ u.name=name; if(pw) u.password=pw; }
+  // Refresh session in localStorage
+  try { localStorage.setItem('ajc_session', JSON.stringify({userId:currentUser.id, email:currentUser.email, pw:currentUser.password})); } catch(e){}
+  document.getElementById('nav-user-name').textContent = name;
+  showToast('Account settings saved ✓');
 }
 
 // ===== ADMIN =====
@@ -2263,9 +2403,25 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   const params = new URLSearchParams(window.location.search);
   if (params.get('cohort') && params.get('token')) {
     checkInviteLink();
-  } else {
-    showPage('page-login');
+    return;
   }
+  // Try auto-login from saved session
+  try {
+    const saved = localStorage.getItem('ajc_session');
+    if(saved) {
+      const sess = JSON.parse(saved);
+      const user = USERS.find(u=>u.id===sess.userId && u.email===sess.email && u.password===sess.pw);
+      if(user) {
+        document.getElementById('login-email').value = user.email;
+        document.getElementById('login-password').value = user.password;
+        await doLogin(true); // skipReload=true, data already loaded
+        return;
+      } else {
+        localStorage.removeItem('ajc_session');
+      }
+    }
+  } catch(e){}
+  showPage('page-login');
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
 });
