@@ -185,17 +185,18 @@
     </div>
     <div class="rounded-xl p-3 mb-5 flex items-center gap-2" style="background:#faf5e8;border:1px solid #e8ddc4">
       <span class="text-lg">🎓</span>
-      <span class="text-sm font-medium" style="color:#7a6636">Joining: <strong>AJC 2026</strong></span>
+      <span class="text-sm font-medium" style="color:#7a6636">Joining: <strong id="reg-cohort-name">Your Cohort</strong></span>
       <span class="text-xs ml-auto" style="color:#bea566">(from your invite link)</span>
     </div>
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">First Name</label><input type="text" placeholder="Jane" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"></div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label><input type="text" placeholder="Smith" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">First Name</label><input type="text" id="reg-first-name" placeholder="Jane" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label><input type="text" id="reg-last-name" placeholder="Smith" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"></div>
       </div>
-      <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" placeholder="jane@example.com" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"></div>
-      <div><label class="block text-sm font-medium text-gray-700 mb-1">Password</label><input type="password" placeholder="••••••••" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"></div>
-      <button onclick="showPage('page-login')" class="w-full brand-btn font-semibold py-2.5 rounded-xl text-sm transition">Create My Account</button>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" id="reg-email" placeholder="jane@example.com" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Password</label><input type="password" id="reg-password" placeholder="Create a password" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"></div>
+      <div id="reg-error" class="text-red-500 text-sm text-center hidden"></div>
+      <button onclick="doRegister()" class="w-full brand-btn font-semibold py-2.5 rounded-xl text-sm transition">Create My Account</button>
     </div>
     <div class="mt-5 text-center text-sm text-gray-500">Already have an account? <a class="brand-text cursor-pointer hover:underline font-medium" onclick="showPage('page-login')">Sign in here</a></div>
   </div>
@@ -262,7 +263,8 @@
     <button onclick="switchTab('profile')" class="nav-btn my-1.5 py-2 px-4 text-sm font-medium rounded-md text-gray-400 hover:text-white transition flex-shrink-0" data-tab="profile">My Profile</button>
     <button id="admin-tab-btn" onclick="switchTab('admin')" class="nav-btn my-1.5 py-2 px-4 text-sm font-medium rounded-md text-gray-400 hover:text-white transition flex-shrink-0 hidden" data-tab="admin">Admin</button>
     <div class="ml-auto flex items-center gap-3 py-3">
-      <span class="text-xs px-2.5 py-1 rounded-full font-semibold" style="background:#bea566;color:#020e1d">AJC 2026</span>
+      <span id="nav-cohort-badge" class="text-xs px-2.5 py-1 rounded-full font-semibold hidden" style="background:#bea566;color:#020e1d"></span>
+      <select id="nav-cohort-switcher" onchange="switchCohort(parseInt(this.value))" class="hidden text-xs rounded-lg px-2 py-1 font-medium border-0 cursor-pointer" style="background:#0a2440;color:#bea566;outline:none;max-width:140px"></select>
       <span id="nav-user-name" class="text-sm text-gray-300 font-medium"></span>
       <button onclick="doLogout()" class="text-xs text-gray-500 hover:text-gray-300 transition ml-1">Sign out</button>
     </div>
@@ -273,9 +275,15 @@
     <div class="mb-5 flex items-start justify-between gap-3 flex-wrap">
       <div>
         <h1 class="text-2xl font-bold text-gray-800">Captain's Log</h1>
-        <p class="text-sm text-gray-400 mt-0.5">AJC 2026 · Everyone's business progress, one month at a time</p>
+        <p id="log-subtitle" class="text-sm text-gray-400 mt-0.5">Everyone's business progress, one month at a time</p>
       </div>
       <button onclick="openFaq()" class="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg flex-shrink-0" style="background:#faf5e8;color:#7a6636;border:1px solid #e8ddc4;white-space:nowrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg> How to Use the Captain's Log</button>
+    </div>
+
+    <!-- Archived cohort warning -->
+    <div id="archived-warn-banner" class="hidden mb-4 rounded-xl p-3 flex items-center gap-3" style="background:#fff5f5;border:1px solid #fecaca">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="text-sm font-medium" style="color:#dc2626">This cohort is archived — data is read-only. Coaches can view but cannot make changes.</span>
     </div>
 
     <!-- Period switcher -->
@@ -744,13 +752,7 @@
       <div class="bg-white rounded-xl shadow-sm p-6 mb-5">
         <div class="text-sm font-semibold text-gray-700 mb-4">Active Cohorts</div>
         <div id="cohort-list" class="space-y-3">
-          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-            <div><div class="text-sm font-semibold text-gray-800">AJC 2026</div><div class="text-xs text-gray-400">5 coaches · Created Sep 1, 2025</div></div>
-            <div class="flex gap-2">
-              <button onclick="copyInviteLink('AJC-2026')" class="text-xs px-3 py-1.5 rounded-lg font-medium" style="background:#faf5e8;color:#7a6636">Copy Invite Link</button>
-              <button onclick="exportCSV()" class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Export CSV</button>
-            </div>
-          </div>
+          <p class="text-sm text-gray-400 italic">No cohorts yet — create one above.</p>
         </div>
       </div>
 
@@ -944,36 +946,37 @@ const COLUMN_INFO = {
   },
 };
 
-// ===== USERS (real cohort) =====
-const MOCK_USERS = [
-  { id:1, email:'sarah@ajc.com',  name:'Sarah Mitchell', isAdmin:false },
-  { id:2, email:'james@ajc.com',  name:'James Osei',     isAdmin:false },
-  { id:3, email:'priya@ajc.com',  name:'Priya Patel',    isAdmin:false },
-  { id:4, email:'tom@ajc.com',    name:'Tom Clarke',     isAdmin:false },
-  { id:5, email:'lara@ajc.com',   name:'Lara Nguyen',    isAdmin:false },
-  { id:6, email:'admin@ajc.com',  name:'Ankush',         isAdmin:true  },
-];
+// ===== DYNAMIC USER + COHORT DATA (loaded from localStorage) =====
+let USERS = [];   // all users including admin
+let COHORTS = []; // all cohorts
 
-// Monthly log data — loaded from localStorage, starts empty
+// Backward-compat alias so remaining code using MOCK_USERS still works
+let MOCK_USERS = [];
+
+const ADMIN_SEED = { id:1, email:'admin@ajc.com', name:'Ankush', password:'password', isAdmin:true, cohortId:null };
+
+// Monthly log data for current cohort
 let LOG_DATA = {};
 
-const PRESCHOOL_MONTHS = ['Mar','Apr','May','Jun','Jul','Aug'];
+const SCHOOL_MONTHS = ['Sep','Oct','Nov','Dec','Jan','Feb'];
+const PRE_MONTHS    = ['Mar','Apr','May','Jun','Jul','Aug'];
+const PRESCHOOL_MONTHS = PRE_MONTHS;
+
+function getCohortCoaches(cohortId) {
+  return USERS.filter(u=>!u.isAdmin && u.cohortId===cohortId).sort((a,b)=>a.name.localeCompare(b.name));
+}
 
 function emptyRows() {
-  return [...MOCK_USERS]
-    .filter(u=>!u.isAdmin)
-    .sort((a,b)=>a.name.localeCompare(b.name))
-    .map(u=>({userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}));
+  return getCohortCoaches(currentCohortId).map(u=>({userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}));
 }
 
 function preschoolTotalRows() {
   const totals = {};
-  MOCK_USERS.filter(u=>!u.isAdmin).forEach(u=>{
+  getCohortCoaches(currentCohortId).forEach(u=>{
     totals[u.id]={userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0};
   });
   PRESCHOOL_MONTHS.forEach(m=>{
-    const key='preschool-'+m;
-    (LOG_DATA[key]||[]).forEach(r=>{
+    (LOG_DATA['preschool-'+m]||[]).forEach(r=>{
       const t=totals[r.userId];
       if(t){t.conv+=r.conv;t.proposals+=r.proposals;t.sales+=r.sales;t.income+=r.income;t.ref+=r.ref;t.ren+=r.ren;}
     });
@@ -981,21 +984,17 @@ function preschoolTotalRows() {
   return Object.values(totals).sort((a,b)=>a.name.localeCompare(b.name));
 }
 
-// ===== SCHOOL TOTALS — computed dynamically from LOG_DATA =====
-const SCHOOL_MONTHS = ['Sep','Oct','Nov','Dec','Jan','Feb'];
-const PRE_MONTHS = ['Mar','Apr','May','Jun','Jul','Aug'];
-
 function computeSchoolTotals() {
   const result = {};
-  MOCK_USERS.filter(u=>!u.isAdmin).forEach(u=>{
+  getCohortCoaches(currentCohortId).forEach(u=>{
     result[u.id] = { name:u.name, conv:0, proposals:0, sales:0, income:0, ref:0, ren:0, preSales:0 };
     SCHOOL_MONTHS.forEach(m=>{
-      const row = (LOG_DATA['school-'+m]||[]).find(r=>r.userId===u.id);
-      if(row){ result[u.id].conv+=row.conv; result[u.id].proposals+=row.proposals; result[u.id].sales+=row.sales; result[u.id].income+=row.income; result[u.id].ref+=row.ref; result[u.id].ren+=row.ren; }
+      const row=(LOG_DATA['school-'+m]||[]).find(r=>r.userId===u.id);
+      if(row){result[u.id].conv+=row.conv;result[u.id].proposals+=row.proposals;result[u.id].sales+=row.sales;result[u.id].income+=row.income;result[u.id].ref+=row.ref;result[u.id].ren+=row.ren;}
     });
     PRE_MONTHS.forEach(m=>{
-      const row = (LOG_DATA['preschool-'+m]||[]).find(r=>r.userId===u.id);
-      if(row){ result[u.id].preSales+=row.sales; }
+      const row=(LOG_DATA['preschool-'+m]||[]).find(r=>r.userId===u.id);
+      if(row){result[u.id].preSales+=row.sales;}
     });
   });
   return result;
@@ -1034,30 +1033,53 @@ let editingGroupId = null;
 
 // ===== STATE =====
 let currentUser = null;
+let currentCohortId = null;
+let currentCohortArchived = false;
 let currentPeriod = 'school';
 let currentMonth = 'Jan';
 let currentGroupFilter = null;
 let chartsInit = false;
 let _rankCharts = [];
 let _cohortSalesChart = null;
+let RANKS = {};
+let _nextCohortId = 1;
+let _pendingCohortId = null;
+let _pendingCohortToken = null;
 
 // ===== LOCALSTORAGE =====
 function saveData() {
   try {
-    localStorage.setItem('ajc_logData', JSON.stringify(LOG_DATA));
+    localStorage.setItem('ajc_users', JSON.stringify(USERS));
+    localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
+    if (currentCohortId != null) localStorage.setItem('ajc_logData_'+currentCohortId, JSON.stringify(LOG_DATA));
     localStorage.setItem('ajc_groups', JSON.stringify(MENTORING_GROUPS));
     localStorage.setItem('ajc_nextGroupId', String(nextGroupId));
   } catch(e) {}
 }
 function loadData() {
   try {
-    const ld = localStorage.getItem('ajc_logData');
-    if(ld) LOG_DATA = JSON.parse(ld);
+    const us = localStorage.getItem('ajc_users');
+    USERS = us ? JSON.parse(us) : [];
+    if (!USERS.find(u=>u.isAdmin)) USERS.unshift({...ADMIN_SEED});
+    MOCK_USERS = USERS;
+    const co = localStorage.getItem('ajc_cohorts');
+    COHORTS = co ? JSON.parse(co) : [];
+    const nci = localStorage.getItem('ajc_nextCohortId');
+    if (nci) _nextCohortId = parseInt(nci)||1;
     const mg = localStorage.getItem('ajc_groups');
     if(mg) MENTORING_GROUPS = JSON.parse(mg);
     const ng = localStorage.getItem('ajc_nextGroupId');
     if(ng) nextGroupId = parseInt(ng)||1;
-  } catch(e) {}
+  } catch(e) {
+    if (!USERS.find(u=>u.isAdmin)) USERS.unshift({...ADMIN_SEED});
+    MOCK_USERS = USERS;
+  }
+}
+function loadCohortData(cohortId) {
+  try {
+    const ld = localStorage.getItem('ajc_logData_'+cohortId);
+    LOG_DATA = ld ? JSON.parse(ld) : {};
+  } catch(e) { LOG_DATA = {}; }
 }
 function getUserProfile(userId, ver) {
   try {
@@ -1147,7 +1169,7 @@ function renderCohortStats() {
 
 // ===== POPULATE SELECTS =====
 function populateCoachSelects() {
-  const coaches = MOCK_USERS.filter(u=>!u.isAdmin).sort((a,b)=>a.name.localeCompare(b.name));
+  const coaches = getCohortCoaches(currentCohortId);
   // Dashboard coach dropdown
   const coachSel = document.getElementById('coach-select');
   if(coachSel) {
@@ -1168,27 +1190,38 @@ function populateCoachSelects() {
 }
 
 // ===== AUTH =====
-function fillLogin(email) {
+function fillLogin(email, pw) {
   document.getElementById('login-email').value = email;
-  document.getElementById('login-password').value = 'password';
+  document.getElementById('login-password').value = pw || 'password';
   doLogin();
 }
 function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pw = document.getElementById('login-password').value.trim();
-  const user = MOCK_USERS.find(u=>u.email===email);
-  if (!user || pw !== 'password') { document.getElementById('login-error').classList.remove('hidden'); return; }
+  const user = USERS.find(u=>u.email===email && u.password===pw);
+  if (!user) { document.getElementById('login-error').classList.remove('hidden'); return; }
   currentUser = user;
   document.getElementById('login-error').classList.add('hidden');
   document.getElementById('nav-user-name').textContent = user.name;
   document.getElementById('admin-tab-btn').classList.toggle('hidden', !user.isAdmin);
-  // Bottom nav admin button
   const bnAdmin = document.getElementById('bn-admin');
   if(bnAdmin) bnAdmin.style.display = user.isAdmin ? 'flex' : 'none';
+  // Set cohort context
+  if (user.isAdmin) {
+    const first = COHORTS[0];
+    currentCohortId = first ? first.id : null;
+    currentCohortArchived = false;
+  } else {
+    currentCohortId = user.cohortId;
+    const cohort = COHORTS.find(c=>c.id===currentCohortId);
+    currentCohortArchived = cohort ? !!cohort.archived : false;
+  }
+  if (currentCohortId != null) loadCohortData(currentCohortId);
+  MOCK_USERS = USERS;
   showPage('page-app');
+  updateNavCohortDisplay();
   populateCoachSelects();
   switchTab('captains-log');
-  // Pre-select group filter if user is a mentor
   if (!user.isAdmin) {
     const myGroup = MENTORING_GROUPS.find(g=>g.mentorId===user.id);
     if (myGroup) {
@@ -1200,7 +1233,83 @@ function doLogin() {
   populateGroupFilterDropdown();
   renderCaptainsLog();
 }
-function doLogout() { currentUser = null; currentGroupFilter = null; showPage('page-login'); }
+function doLogout() {
+  currentUser = null;
+  currentCohortId = null;
+  currentCohortArchived = false;
+  currentGroupFilter = null;
+  LOG_DATA = {};
+  showPage('page-login');
+}
+function doRegister() {
+  const firstName = (document.getElementById('reg-first-name').value||'').trim();
+  const lastName  = (document.getElementById('reg-last-name').value||'').trim();
+  const email     = (document.getElementById('reg-email').value||'').trim().toLowerCase();
+  const pw        = (document.getElementById('reg-password').value||'').trim();
+  const errEl     = document.getElementById('reg-error');
+  const showErr   = msg => { if(errEl){errEl.textContent=msg;errEl.classList.remove('hidden');} };
+  if (!firstName||!lastName||!email||!pw) { showErr('Please fill in all fields.'); return; }
+  if (!_pendingCohortId) { showErr('No cohort linked — please use your invite link.'); return; }
+  if (USERS.find(u=>u.email===email)) { showErr('This email is already registered — please sign in.'); return; }
+  const newUser = { id:Date.now(), email, name:firstName+' '+lastName, password:pw, isAdmin:false, cohortId:_pendingCohortId };
+  USERS.push(newUser);
+  MOCK_USERS = USERS;
+  localStorage.setItem('ajc_users', JSON.stringify(USERS));
+  _pendingCohortId = null; _pendingCohortToken = null;
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-password').value = pw;
+  showToast('Account created! Signing you in… ✓');
+  doLogin();
+}
+function checkInviteLink() {
+  const params = new URLSearchParams(window.location.search);
+  const cohortId = parseInt(params.get('cohort'));
+  const token    = params.get('token');
+  if (!cohortId || !token) { showPage('page-login'); return; }
+  const cohort = COHORTS.find(c=>c.id===cohortId && c.token===token);
+  if (!cohort) { showPage('page-login'); showToast('Invite link is invalid or expired.'); return; }
+  _pendingCohortId    = cohortId;
+  _pendingCohortToken = token;
+  const el = document.getElementById('reg-cohort-name');
+  if (el) el.textContent = cohort.name;
+  showPage('page-register');
+}
+function switchCohort(cohortId) {
+  currentCohortId = cohortId;
+  const cohort = COHORTS.find(c=>c.id===cohortId);
+  currentCohortArchived = cohort ? !!cohort.archived : false;
+  loadCohortData(cohortId);
+  MOCK_USERS = USERS;
+  populateCoachSelects();
+  renderCaptainsLog();
+  renderCohortList();
+  updateNavCohortDisplay();
+  showToast('Switched to '+( cohort?cohort.name:'cohort'));
+}
+function updateNavCohortDisplay() {
+  const cohort = COHORTS.find(c=>c.id===currentCohortId);
+  const isAdmin = currentUser && currentUser.isAdmin;
+  // Badge (non-admin only)
+  const badge = document.getElementById('nav-cohort-badge');
+  if (badge) {
+    if (!isAdmin && cohort) { badge.textContent = cohort.name+(cohort.archived?' [Archived]':''); badge.classList.remove('hidden'); }
+    else badge.classList.add('hidden');
+  }
+  // Switcher dropdown (admin only, when multiple cohorts)
+  const switcher = document.getElementById('nav-cohort-switcher');
+  if (switcher) {
+    if (isAdmin && COHORTS.length > 0) {
+      switcher.classList.remove('hidden');
+      switcher.innerHTML = COHORTS.map(c=>`<option value="${c.id}"${c.id===currentCohortId?' selected':''}>${c.name}${c.archived?' ⚑':''}</option>`).join('');
+    } else switcher.classList.add('hidden');
+  }
+  // Archived banner
+  const archWarn = document.getElementById('archived-warn-banner');
+  if (archWarn) archWarn.classList.toggle('hidden', !currentCohortArchived);
+  // Log subtitle
+  const sub = document.getElementById('log-subtitle');
+  if (sub && cohort) sub.textContent = cohort.name + ' · Everyone\'s business progress, one month at a time';
+}
 
 // ===== NAV =====
 function showPage(id) {
@@ -1218,10 +1327,10 @@ function switchTab(tab) {
   });
   // Bottom nav active state
   document.querySelectorAll('.bn-btn').forEach(b=>b.classList.toggle('bn-active', b.id==='bn-'+tab));
-  if (tab==='dashboard') { renderCohortStats(); setTimeout(initCharts, 60); }
+  if (tab==='dashboard') { RANKS = computeRanks(); renderCohortStats(); setTimeout(initCharts, 60); }
   if (tab==='daily-log') { document.getElementById('daily-date').value = new Date().toISOString().split('T')[0]; renderDailyLogs(); }
   if (tab==='profile') loadProfileVersion('current');
-  if (tab==='admin') { renderMentoringGroupsList(); populateCoachSelects(); }
+  if (tab==='admin') { renderCohortList(); renderMentoringGroupsList(); populateCoachSelects(); }
 }
 
 // ===== CAPTAIN'S LOG =====
@@ -1345,18 +1454,21 @@ function renderCaptainsLog() {
 
   rows.forEach(row=>{
     const isOwn = currentUser && row.userId===currentUser.id;
+    const isAdmin = currentUser && currentUser.isAdmin;
+    const canEdit = !isTotal && !currentCohortArchived && (isAdmin || isOwn);
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>
         <button onclick="goToDashboard(${row.userId})" class="font-semibold hover:underline text-sm" style="color:#bea566">${row.name}</button>
         ${isOwn ? '<span class="ml-2 text-xs px-1.5 py-0.5 rounded font-medium" style="background:#faf5e8;color:#7a6636">You</span>' : ''}
+        ${isAdmin && !isOwn ? '<span class="ml-1 text-xs px-1.5 py-0.5 rounded font-medium" style="background:#eff6ff;color:#1d4ed8">Edit</span>' : ''}
       </td>
-      <td><input type="number" min="0" value="${row.conv}" class="editable-input${isOwn&&!isTotal?' own-row':''}" ${(!isOwn||isTotal)?'disabled':''} onchange="updateLog(${row.userId},'conv',this.value,'${key}')"></td>
-      <td><input type="text" value="${(row.proposals/100).toFixed(2)}" class="editable-input${isOwn&&!isTotal?' own-row':''}" ${(!isOwn||isTotal)?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'proposals',this.value,'${key}')"></td>
-      <td><input type="text" value="${(row.sales/100).toFixed(2)}" class="editable-input${isOwn&&!isTotal?' own-row':''}" ${(!isOwn||isTotal)?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'sales',this.value,'${key}')"></td>
-      <td><input type="text" value="${(row.income/100).toFixed(2)}" class="editable-input${isOwn&&!isTotal?' own-row':''}" ${(!isOwn||isTotal)?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'income',this.value,'${key}')"></td>
-      <td><input type="number" min="0" value="${row.ref}" class="editable-input${isOwn&&!isTotal?' own-row':''}" ${(!isOwn||isTotal)?'disabled':''} onchange="updateLog(${row.userId},'ref',this.value,'${key}')"></td>
-      <td><input type="number" min="0" value="${row.ren}" class="editable-input${isOwn&&!isTotal?' own-row':''}" ${(!isOwn||isTotal)?'disabled':''} onchange="updateLog(${row.userId},'ren',this.value,'${key}')"></td>
+      <td><input type="number" min="0" value="${row.conv}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'conv',this.value,'${key}')"></td>
+      <td><input type="text" value="${(row.proposals/100).toFixed(2)}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'proposals',this.value,'${key}')"></td>
+      <td><input type="text" value="${(row.sales/100).toFixed(2)}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'sales',this.value,'${key}')"></td>
+      <td><input type="text" value="${(row.income/100).toFixed(2)}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} oninput="validateCurrency(this)" onchange="updateLog(${row.userId},'income',this.value,'${key}')"></td>
+      <td><input type="number" min="0" value="${row.ref}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'ref',this.value,'${key}')"></td>
+      <td><input type="number" min="0" value="${row.ren}" class="editable-input${canEdit?' own-row':''}" ${!canEdit?'disabled':''} onchange="updateLog(${row.userId},'ren',this.value,'${key}')"></td>
     `;
     tbody.appendChild(tr);
     totals.conv+=row.conv; totals.proposals+=row.proposals; totals.sales+=row.sales;
@@ -1371,14 +1483,14 @@ function renderCaptainsLog() {
 }
 
 function updateLog(userId, field, value, key) {
-  if (!currentUser||currentUser.id!==userId) return;
-  // Create month entry if it doesn't exist
-  if (!LOG_DATA[key]) {
-    LOG_DATA[key] = MOCK_USERS.filter(u=>!u.isAdmin).map(u=>({userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}));
-  }
+  if (!currentUser) return;
+  if (!currentUser.isAdmin && currentUser.id !== userId) return;
+  if (currentCohortArchived) { showToast('This cohort is archived — no edits allowed'); return; }
+  if (!LOG_DATA[key]) LOG_DATA[key] = emptyRows();
   let row = LOG_DATA[key].find(r=>r.userId===userId);
   if (!row) {
-    row = {userId,name:currentUser.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0};
+    const u = USERS.find(u=>u.id===userId);
+    row = {userId, name:u?u.name:'', conv:0, proposals:0, sales:0, income:0, ref:0, ren:0};
     LOG_DATA[key].push(row);
   }
   if (['conv','ref','ren'].includes(field)) row[field]=parseInt(value)||0;
@@ -1391,7 +1503,7 @@ function updateLog(userId, field, value, key) {
 // ===== DASHBOARD =====
 function goToDashboard(userId) {
   switchTab('dashboard');
-  if (!chartsInit){setTimeout(initCharts,60);chartsInit=true;}
+  RANKS = computeRanks();
   const sel = document.getElementById('coach-select');
   sel.value = userId;
   selectPersonFromDropdown(String(userId));
@@ -1410,7 +1522,7 @@ function selectPersonFromDropdown(val) {
     const uid = parseInt(val);
     renderIndividual(uid);
     const st = computeSchoolTotals();
-    const d = st[uid] || MOCK_USERS.find(u=>u.id===uid);
+    const d = st[uid] || USERS.find(u=>u.id===uid);
     if (d) {
       lmName.textContent = d.name;
       lmBtn.classList.remove('hidden'); lmBtn.classList.add('inline-flex');
@@ -1653,6 +1765,7 @@ function renderSalesBoard() {
 // ===== DAILY LOG =====
 function saveDailyLog() {
   if(!currentUser) return;
+  if(currentCohortArchived) { showToast('This cohort is archived — no edits allowed'); return; }
   const date = document.getElementById('daily-date').value;
   if(!date){ showToast('Please select a date first'); return; }
   const conv = parseInt(document.getElementById('daily-conv').value)||0;
@@ -1673,7 +1786,7 @@ function saveDailyLog() {
   const mo = d.getMonth(); // 0-indexed
   const isSchool = mo>=8 || mo<=1; // Sep(8)-Feb(1)
   const key = (isSchool?'school':'preschool')+'-'+mName;
-  if(!LOG_DATA[key]) LOG_DATA[key] = MOCK_USERS.filter(u=>!u.isAdmin).map(u=>({userId:u.id,name:u.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}));
+  if(!LOG_DATA[key]) LOG_DATA[key] = emptyRows();
   let row = LOG_DATA[key].find(r=>r.userId===currentUser.id);
   if(!row){ row={userId:currentUser.id,name:currentUser.name,conv:0,proposals:0,sales:0,income:0,ref:0,ren:0}; LOG_DATA[key].push(row); }
   row.conv+=conv; row.proposals+=proposals; row.sales+=sales; row.income+=income; row.ref+=ref; row.ren+=ren;
@@ -1755,6 +1868,7 @@ function loadProfileVersion(ver) {
 
 function saveProfile() {
   if(!currentUser) return;
+  if(currentCohortArchived) { showToast('This cohort is archived — profile changes are read-only'); return; }
   const gv = id => document.getElementById(id)?.value || '';
   const data = {
     experience: gv('pf-experience'), idealClients: gv('pf-ideal-clients'), challenge: gv('pf-challenge'),
@@ -1768,28 +1882,95 @@ function saveProfile() {
 
 // ===== ADMIN =====
 function createCohort() {
-  const name=document.getElementById('admin-cohort-name').value.trim();
-  const year=document.getElementById('admin-cohort-year').value;
-  if(!name){showToast('Please enter a cohort name first');return;}
-  const slug=name.replace(/ /g,'-')+'-'+year;
-  const div=document.createElement('div');
-  div.className='flex items-center justify-between p-3 bg-gray-50 rounded-xl';
-  div.innerHTML=`<div><div class="text-sm font-semibold text-gray-800">${name} ${year}</div><div class="text-xs text-gray-400">Just created</div></div>
-    <div class="flex gap-2">
-      <button onclick="copyInviteLink('${slug}')" class="text-xs px-3 py-1.5 rounded-lg font-medium" style="background:#faf5e8;color:#7a6636">Copy Invite Link</button>
-      <button onclick="exportCSV()" class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Export CSV</button>
-    </div>`;
-  document.getElementById('cohort-list').appendChild(div);
-  document.getElementById('admin-cohort-name').value='';
-  copyInviteLink(slug);
+  const name = document.getElementById('admin-cohort-name').value.trim();
+  const year = document.getElementById('admin-cohort-year').value;
+  if (!name) { showToast('Please enter a cohort name first'); return; }
+  const saved = localStorage.getItem('ajc_nextCohortId');
+  if (saved) _nextCohortId = parseInt(saved)||1;
+  const token = Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)+Date.now().toString(36);
+  const cohort = { id:_nextCohortId++, name:name+' '+year, token, archived:false, created:new Date().toISOString() };
+  localStorage.setItem('ajc_nextCohortId', String(_nextCohortId));
+  COHORTS.push(cohort);
+  localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
+  // Auto-switch admin to new cohort if none selected
+  if (currentCohortId == null) switchCohort(cohort.id);
+  document.getElementById('admin-cohort-name').value = '';
+  renderCohortList();
+  copyInviteLinkById(cohort.id);
 }
-
-function copyInviteLink(slug) {
-  const url=`https://ajccoach.app/register?cohort=${slug}`;
-  document.getElementById('invite-link-url').textContent=url;
+function copyInviteLinkById(cohortId) {
+  const cohort = COHORTS.find(c=>c.id===cohortId);
+  if (!cohort) return;
+  const base = window.location.origin + window.location.pathname;
+  const url = base + '?cohort=' + cohortId + '&token=' + cohort.token;
+  document.getElementById('invite-link-url').textContent = url;
   document.getElementById('invite-link-box').classList.remove('hidden');
   navigator.clipboard.writeText(url).catch(()=>{});
   showToast('Invite link copied! 🔗');
+}
+function copyInviteLink(id) { copyInviteLinkById(id); }
+function renderCohortList() {
+  const container = document.getElementById('cohort-list');
+  if (!container) return;
+  if (!COHORTS.length) {
+    container.innerHTML = '<p class="text-sm text-gray-400 italic">No cohorts yet — create one above.</p>';
+    return;
+  }
+  container.innerHTML = COHORTS.map(c=>{
+    const coaches = getCohortCoaches(c.id).length;
+    const isActive = currentCohortId === c.id;
+    return `<div class="flex items-center justify-between p-3 rounded-xl gap-2 flex-wrap" style="background:${c.archived?'#fff5f5':'#f8fafc'};border:1px solid ${isActive?'#bea566':c.archived?'#fecaca':'#e2e8f0'}">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="text-sm font-semibold text-gray-800">${c.name}</div>
+          ${c.archived ? '<span class="text-xs px-2 py-0.5 rounded-full" style="background:#fee2e2;color:#dc2626;font-weight:600">Archived</span>' : ''}
+          ${isActive ? '<span class="text-xs px-2 py-0.5 rounded-full" style="background:#faf5e8;color:#7a6636;font-weight:600">Viewing</span>' : ''}
+        </div>
+        <div class="text-xs text-gray-400 mt-0.5">${coaches} coach${coaches===1?'':'es'} · ${new Date(c.created).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+      </div>
+      <div class="flex gap-2 flex-shrink-0 flex-wrap">
+        ${!isActive ? `<button onclick="switchCohort(${c.id})" class="text-xs px-3 py-1.5 rounded-lg font-medium" style="background:#020e1d;color:white">Switch</button>` : ''}
+        <button onclick="copyInviteLinkById(${c.id})" class="text-xs px-3 py-1.5 rounded-lg font-medium" style="background:#faf5e8;color:#7a6636">Invite Link</button>
+        <button onclick="archiveCohort(${c.id})" class="text-xs px-3 py-1.5 rounded-lg font-medium" style="background:${c.archived?'#d1fae5':'#fff7ed'};color:${c.archived?'#065f46':'#92400e'}">${c.archived?'Unarchive':'Archive'}</button>
+        <button onclick="exportCSV()" class="text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 text-gray-600">Export CSV</button>
+        <button onclick="deleteCohort(${c.id})" class="text-xs text-red-400 hover:text-red-600 font-medium px-2">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function archiveCohort(id) {
+  const c = COHORTS.find(c=>c.id===id);
+  if (!c) return;
+  c.archived = !c.archived;
+  localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
+  if (currentCohortId === id) {
+    currentCohortArchived = c.archived;
+    updateNavCohortDisplay();
+    renderCaptainsLog();
+  }
+  renderCohortList();
+  showToast(c.archived ? 'Cohort archived — coaches can view but not edit' : 'Cohort unarchived ✓');
+}
+function deleteCohort(id) {
+  if (!confirm('Delete this cohort and remove all its coaches? This cannot be undone.')) return;
+  COHORTS = COHORTS.filter(c=>c.id!==id);
+  USERS   = USERS.filter(u=>u.isAdmin || u.cohortId!==id);
+  MOCK_USERS = USERS;
+  localStorage.setItem('ajc_cohorts', JSON.stringify(COHORTS));
+  localStorage.setItem('ajc_users',   JSON.stringify(USERS));
+  try { localStorage.removeItem('ajc_logData_'+id); } catch(e){}
+  if (currentCohortId === id) {
+    const first = COHORTS[0];
+    currentCohortId = first ? first.id : null;
+    currentCohortArchived = false;
+    LOG_DATA = {};
+    if (currentCohortId != null) loadCohortData(currentCohortId);
+    updateNavCohortDisplay();
+    populateCoachSelects();
+    renderCaptainsLog();
+  }
+  renderCohortList();
+  showToast('Cohort deleted');
 }
 
 function exportCSV() {
@@ -1809,7 +1990,7 @@ function exportCSV() {
 function createMentoringGroup() {
   const mentorId = parseInt(document.getElementById('admin-mentor-select').value);
   if (!mentorId) { showToast('Please select a mentor first'); return; }
-  const mentor = MOCK_USERS.find(u=>u.id===mentorId);
+  const mentor = USERS.find(u=>u.id===mentorId);
   if (!mentor) return;
 
   const checked = [...document.querySelectorAll('.member-checkbox:checked')].map(c=>parseInt(c.value));
@@ -1868,8 +2049,8 @@ function renderMentoringGroupsList() {
     return;
   }
   container.innerHTML = MENTORING_GROUPS.map(g=>{
-    const mentor = MOCK_USERS.find(u=>u.id===g.mentorId);
-    const members = g.memberIds.map(id=>MOCK_USERS.find(u=>u.id===id)?.name).filter(Boolean);
+    const mentor = USERS.find(u=>u.id===g.mentorId);
+    const members = g.memberIds.map(id=>USERS.find(u=>u.id===id)?.name).filter(Boolean);
     return `<div class="flex items-start justify-between p-4 rounded-xl" style="background:#faf5e8;border:1px solid #e8ddc4">
       <div class="flex-1 min-w-0">
         <div class="text-sm font-semibold text-gray-800">${g.name}</div>
@@ -1962,7 +2143,7 @@ function openProfileModal() {
   if (!userId) return;
   const p = getUserProfile(userId, 'current');
   const st = computeSchoolTotals();
-  const d = st[userId] || MOCK_USERS.find(u=>u.id===userId);
+  const d = st[userId] || USERS.find(u=>u.id===userId);
   if (!d) return;
   const first = d.name.split(' ')[0];
   document.getElementById('pm-name').textContent = d.name;
@@ -2052,8 +2233,12 @@ document.addEventListener('click', (e) => {
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', ()=>{
   loadData();
-  showPage('page-login');
-  populateCoachSelects();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('cohort') && params.get('token')) {
+    checkInviteLink();
+  } else {
+    showPage('page-login');
+  }
   renderMentoringGroupsList();
   populateGroupFilterDropdown();
 });
