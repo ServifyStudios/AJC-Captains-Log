@@ -1035,7 +1035,9 @@ const PRE_MONTHS    = ['Mar','Apr','May','Jun','Jul','Aug'];
 const PRESCHOOL_MONTHS = PRE_MONTHS;
 
 function getCohortCoaches(cohortId) {
-  return USERS.filter(u=>!u.isAdmin && u.cohortId===cohortId).sort((a,b)=>a.name.localeCompare(b.name));
+  const ucIds = USER_COHORTS.filter(uc=>uc.cohort_id===cohortId).map(uc=>uc.user_id);
+  return USERS.filter(u=>!u.isAdmin && (u.cohortId===cohortId || ucIds.includes(u.id)))
+    .sort((a,b)=>a.name.localeCompare(b.name));
 }
 
 function emptyRows() {
@@ -1389,7 +1391,11 @@ async function doRegister() {
   if (existing) {
     if (existing.password !== pw) { showLoading(false); showErr('That email is already registered — sign in with your existing password, or use the password you set when you first joined.'); return; }
     // Add to new cohort via junction table
-    await sb.from('user_cohorts').upsert({user_id:existing.id, cohort_id:_pendingCohortId},{onConflict:'user_id,cohort_id'});
+    await sb.from('user_cohorts').upsert({user_id:existing.id, cohort_id:_pendingCohortId},{onConflict:'user_id,cohort_id'}).catch(()=>{});
+    // Also update primary cohort_id on users table if null (ensures getCohortCoaches finds them)
+    if (!existing.cohort_id) {
+      await sb.from('users').update({cohort_id:_pendingCohortId}).eq('id',existing.id);
+    }
     await reloadUsers(); await reloadUserCohorts();
     showLoading(false);
     _pendingCohortId = null; _pendingCohortToken = null;
